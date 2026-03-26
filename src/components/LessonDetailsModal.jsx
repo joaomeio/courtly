@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '../supabaseClient';
-import { ArrowLeft, MoreVertical, ShieldCheck, Clock, LayoutGrid, Loader2, Repeat, Target, MessageSquare, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, MoreVertical, ShieldCheck, Clock, LayoutGrid, Loader2, Repeat, Target, MessageSquare, CheckCircle2, XCircle, Trash2 } from 'lucide-react';
 
 export default function LessonDetailsModal({ isOpen, onClose, lesson, onUpdate }) {
   const [completing, setCompleting] = useState(false);
   const [rescheduling, setRescheduling] = useState(false);
   const [showReschedule, setShowReschedule] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState(false);
   const [objectives, setObjectives] = useState('');
   const [feedback, setFeedback] = useState('');
   const [rescheduleDate, setRescheduleDate] = useState('');
@@ -46,6 +48,24 @@ export default function LessonDetailsModal({ isOpen, onClose, lesson, onUpdate }
       console.error('Error completing lesson:', err);
     } finally {
       setCompleting(false);
+    }
+  };
+
+  const handleCancelLesson = async () => {
+    setCancelling(true);
+    try {
+      const { error } = await supabase
+        .from('lessons')
+        .update({ status: 'Cancelled' })
+        .eq('id', lesson.id);
+      if (error) throw error;
+      onUpdate?.();
+      onClose();
+    } catch (err) {
+      console.error('Error cancelling lesson:', err);
+    } finally {
+      setCancelling(false);
+      setConfirmCancel(false);
     }
   };
 
@@ -199,29 +219,57 @@ export default function LessonDetailsModal({ isOpen, onClose, lesson, onUpdate }
         </div>
 
         {/* Action Area */}
-        {lesson.status !== 'Completed' && (
-          <div className="px-6 py-4 space-y-3">
+        <div className="px-6 py-4 space-y-3">
+          {lesson.status !== 'Completed' && (
+            <>
+              <button
+                onClick={handleCompleteLesson}
+                disabled={completing}
+                className="w-full text-white font-bold py-3 px-4 rounded-xl shadow-md transition-transform active:scale-[0.98] mt-2 bg-primary flex items-center justify-center gap-2"
+              >
+                {completing ? <Loader2 size={20} className="animate-spin" /> : <CheckCircle2 size={20} />}
+                {completing ? 'Completing...' : 'Complete Lesson'}
+              </button>
+              <button
+                onClick={() => setShowReschedule(v => !v)}
+                className="w-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95"
+              >
+                <Repeat size={20} />
+                Reschedule Session
+              </button>
+            </>
+          )}
+
+          {!confirmCancel ? (
             <button
-              onClick={handleCompleteLesson}
-              disabled={completing}
-              className="w-full text-white font-bold py-3 px-4 rounded-xl shadow-md transition-transform active:scale-[0.98] mt-2 bg-primary"
+              onClick={() => setConfirmCancel(true)}
+              className="w-full bg-white border border-red-200 text-red-500 hover:bg-red-50 font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95"
             >
-              {completing ? (
-                <Loader2 size={24} className="animate-spin" />
-              ) : (
-                <CheckCircle2 size={24} className="transition-transform group-hover:scale-110" />
-              )}
-              {completing ? 'Completing...' : 'Complete Lesson'}
+              <XCircle size={20} />
+              Cancel Lesson
             </button>
-            <button
-              onClick={() => setShowReschedule(v => !v)}
-              className="w-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95"
-            >
-              <Repeat size={24} />
-              Reschedule Session
-            </button>
-          </div>
-        )}
+          ) : (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-4 space-y-3">
+              <p className="text-sm font-semibold text-red-700 text-center">Are you sure you want to cancel this lesson?</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setConfirmCancel(false)}
+                  className="flex-1 py-2.5 rounded-lg border border-slate-200 bg-white text-slate-600 font-bold text-sm"
+                >
+                  Keep It
+                </button>
+                <button
+                  onClick={handleCancelLesson}
+                  disabled={cancelling}
+                  className="flex-1 py-2.5 rounded-lg bg-red-500 text-white font-bold text-sm flex items-center justify-center gap-1.5"
+                >
+                  {cancelling ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                  {cancelling ? 'Cancelling...' : 'Yes, Cancel'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );

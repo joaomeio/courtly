@@ -2,13 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { format, parseISO } from 'date-fns';
-import { ArrowLeft, Settings, ShieldCheck, Mail, CalendarPlus, BarChart2, TrendingUp, TrendingDown, ArrowRight, ChevronRight, FileEdit } from 'lucide-react';
+import { ArrowLeft, Settings, ShieldCheck, Mail, CalendarPlus, BarChart2, TrendingUp, TrendingDown, ArrowRight, ChevronRight, FileEdit, Check, X } from 'lucide-react';
 
 export default function StudentProfile() {
   const { id } = useParams();
   const [student, setStudent] = useState(null);
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [editData, setEditData] = useState({ full_name: '', email: '', phone: '', experience_level: '' });
 
   useEffect(() => {
     fetchStudentData();
@@ -25,6 +28,12 @@ export default function StudentProfile() {
       if (studentRes.error) throw studentRes.error;
       setStudent(studentRes.data);
       setLessons(lessonsRes.data || []);
+      setEditData({
+        full_name: studentRes.data.full_name || '',
+        email: studentRes.data.email || '',
+        phone: studentRes.data.phone || '',
+        experience_level: studentRes.data.experience_level || 'Beginner',
+      });
     } catch (err) {
       console.error('Error fetching student details:', err);
     } finally {
@@ -54,6 +63,33 @@ export default function StudentProfile() {
     { label: 'Cancel Rate', score: cancelRate + '%', trend: cancelRate > 20 ? 'down' : 'up', val: cancelledLessons + ' total' }
   ];
 
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('students')
+        .update(editData)
+        .eq('id', id);
+      if (error) throw error;
+      setStudent(prev => ({ ...prev, ...editData }));
+      setEditing(false);
+    } catch (err) {
+      console.error('Error saving student:', err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditData({
+      full_name: student.full_name || '',
+      email: student.email || '',
+      phone: student.phone || '',
+      experience_level: student.experience_level || 'Beginner',
+    });
+    setEditing(false);
+  };
+
   if (loading) {
     return <div className="flex justify-center py-12"><div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div></div>;
   }
@@ -75,9 +111,15 @@ export default function StudentProfile() {
           </Link>
           <h2 className="text-lg font-bold leading-tight tracking-tight flex-1 text-center">Student Profile</h2>
           <div className="flex w-10 items-center justify-end">
-            <button className="flex size-10 items-center justify-center rounded-full bg-slate-50 text-slate-500 hover:text-primary transition-colors">
-              <Settings size={20} />
-            </button>
+            {editing ? (
+              <button onClick={handleCancelEdit} className="flex size-10 items-center justify-center rounded-full bg-slate-50 text-slate-500 hover:text-red-500 transition-colors">
+                <X size={20} />
+              </button>
+            ) : (
+              <button onClick={() => setEditing(true)} className="flex size-10 items-center justify-center rounded-full bg-slate-50 text-slate-500 hover:text-primary transition-colors">
+                <Settings size={20} />
+              </button>
+            )}
           </div>
         </div>
 
@@ -94,17 +136,62 @@ export default function StudentProfile() {
                     <ShieldCheck size={16} strokeWidth={3} />
                   </div>
                 </div>
-                <div className="flex flex-col items-center justify-center">
-                  <p className="text-2xl font-bold leading-tight tracking-tight text-center">{student.full_name}</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="text-primary text-[10px] uppercase font-bold px-3 py-1 bg-primary/10 rounded-full tracking-widest">
-                      {student.experience_level || 'Intermediate Level'}
-                    </span>
+                {editing ? (
+                  <div className="flex flex-col gap-3 w-full max-w-sm mt-2">
+                    <input
+                      value={editData.full_name}
+                      onChange={e => setEditData(p => ({ ...p, full_name: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-bold outline-none focus:border-primary"
+                      placeholder="Full name"
+                    />
+                    <input
+                      value={editData.email}
+                      onChange={e => setEditData(p => ({ ...p, email: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm outline-none focus:border-primary"
+                      placeholder="Email"
+                      type="email"
+                    />
+                    <input
+                      value={editData.phone}
+                      onChange={e => setEditData(p => ({ ...p, phone: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm outline-none focus:border-primary"
+                      placeholder="Phone"
+                      type="tel"
+                    />
+                    <div className="flex gap-2">
+                      {['Beginner', 'Intermediate', 'Advanced'].map(level => (
+                        <button
+                          key={level}
+                          onClick={() => setEditData(p => ({ ...p, experience_level: level }))}
+                          className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold border transition-colors ${editData.experience_level === level ? 'bg-primary text-white border-primary' : 'bg-white text-slate-600 border-slate-200'}`}
+                        >
+                          {level}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      onClick={handleSave}
+                      disabled={saving}
+                      className="w-full py-2.5 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center gap-2"
+                    >
+                      <Check size={16} />
+                      {saving ? 'Saving...' : 'Save Changes'}
+                    </button>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center">
+                    <p className="text-2xl font-bold leading-tight tracking-tight text-center">{student.full_name}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-primary text-[10px] uppercase font-bold px-3 py-1 bg-primary/10 rounded-full tracking-widest">
+                        {student.experience_level || 'Intermediate Level'}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
+              {!editing && (
               <div className="flex w-full gap-3 mt-4 max-w-sm">
-                <button 
+                <button
                   onClick={() => student.email ? window.location.href = `mailto:${student.email}` : alert('No email address on file for this student.')}
                   className="flex-1 flex cursor-pointer items-center justify-center rounded-xl h-12 px-4 border border-slate-200 bg-white font-bold hover:bg-slate-50 transition-colors shadow-sm"
                 >
@@ -116,6 +203,7 @@ export default function StudentProfile() {
                   Book
                 </Link>
               </div>
+              )}
             </div>
           </div>
 
@@ -223,10 +311,19 @@ export default function StudentProfile() {
             <Link to="/students" className="flex items-center justify-center size-10 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-primary hover:border-primary transition-all shadow-sm">
               <ArrowLeft size={20} />
             </Link>
-            <div>
+            <div className="flex-1">
               <p className="text-[13px] text-slate-500 m-0 mb-1 tracking-wide uppercase font-semibold">Student Profile</p>
               <h1 className="text-[28px] font-bold m-0 tracking-tight text-slate-900 leading-none">{student.full_name}</h1>
             </div>
+            {editing ? (
+              <button onClick={handleCancelEdit} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 text-sm font-bold hover:bg-slate-50 transition-colors">
+                <X size={16} /> Cancel
+              </button>
+            ) : (
+              <button onClick={() => setEditing(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 text-sm font-bold hover:bg-primary/5 hover:border-primary hover:text-primary transition-colors">
+                <Settings size={16} /> Edit Profile
+              </button>
+            )}
           </div>
 
           <div className="grid grid-cols-[300px_1fr] gap-8 items-start">
@@ -247,29 +344,82 @@ export default function StudentProfile() {
                   </div>
                 </div>
 
-                <h2 className="text-xl font-bold mt-4 text-slate-900">{student.full_name}</h2>
-                <div className="mt-2 text-primary tracking-wide text-[11px] font-bold px-3 py-1 bg-primary/10 rounded-full">
-                  {student.experience_level || 'Intermediate Level'}
-                </div>
-                
-                <p className="text-slate-500 text-xs mt-4">
-                  {student.phone ? student.phone : 'No phone number'} <br/>
-                  {student.email ? student.email : 'No email'}
-                </p>
-
-                <div className="flex w-full gap-3 mt-6">
-                  <button 
-                    onClick={() => student.email ? window.location.href = `mailto:${student.email}` : alert('No email address on file.')}
-                    className="flex-1 flex cursor-pointer items-center justify-center rounded-xl h-11 border border-slate-200 bg-white font-bold text-[13px] hover:bg-slate-50 transition-colors"
-                  >
-                    <Mail size={16} className="mr-2 text-slate-500" />
-                    Message
-                  </button>
-                  <Link to="/schedule" className="flex-1 flex cursor-pointer items-center justify-center rounded-xl h-11 bg-primary text-white font-bold text-[13px] hover:bg-primary/90 shadow-sm transition-colors">
-                    <CalendarPlus size={16} className="mr-2" />
-                    Book
-                  </Link>
-                </div>
+                {editing ? (
+                  <div className="flex flex-col gap-3 w-full mt-4 text-left">
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Full Name</label>
+                      <input
+                        value={editData.full_name}
+                        onChange={e => setEditData(p => ({ ...p, full_name: e.target.value }))}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-bold outline-none focus:border-primary"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Email</label>
+                      <input
+                        value={editData.email}
+                        onChange={e => setEditData(p => ({ ...p, email: e.target.value }))}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm outline-none focus:border-primary"
+                        type="email"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Phone</label>
+                      <input
+                        value={editData.phone}
+                        onChange={e => setEditData(p => ({ ...p, phone: e.target.value }))}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm outline-none focus:border-primary"
+                        type="tel"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Level</label>
+                      <div className="flex gap-2">
+                        {['Beginner', 'Intermediate', 'Advanced'].map(level => (
+                          <button
+                            key={level}
+                            onClick={() => setEditData(p => ({ ...p, experience_level: level }))}
+                            className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold border transition-colors ${editData.experience_level === level ? 'bg-primary text-white border-primary' : 'bg-white text-slate-600 border-slate-200'}`}
+                          >
+                            {level}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleSave}
+                      disabled={saving}
+                      className="w-full py-2.5 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center gap-2 mt-1"
+                    >
+                      <Check size={15} />
+                      {saving ? 'Saving...' : 'Save Changes'}
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <h2 className="text-xl font-bold mt-4 text-slate-900">{student.full_name}</h2>
+                    <div className="mt-2 text-primary tracking-wide text-[11px] font-bold px-3 py-1 bg-primary/10 rounded-full">
+                      {student.experience_level || 'Intermediate Level'}
+                    </div>
+                    <p className="text-slate-500 text-xs mt-4">
+                      {student.phone ? student.phone : 'No phone number'} <br/>
+                      {student.email ? student.email : 'No email'}
+                    </p>
+                    <div className="flex w-full gap-3 mt-6">
+                      <button
+                        onClick={() => student.email ? window.location.href = `mailto:${student.email}` : alert('No email address on file.')}
+                        className="flex-1 flex cursor-pointer items-center justify-center rounded-xl h-11 border border-slate-200 bg-white font-bold text-[13px] hover:bg-slate-50 transition-colors"
+                      >
+                        <Mail size={16} className="mr-2 text-slate-500" />
+                        Message
+                      </button>
+                      <Link to="/schedule" className="flex-1 flex cursor-pointer items-center justify-center rounded-xl h-11 bg-primary text-white font-bold text-[13px] hover:bg-primary/90 shadow-sm transition-colors">
+                        <CalendarPlus size={16} className="mr-2" />
+                        Book
+                      </Link>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Stats */}

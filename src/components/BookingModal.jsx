@@ -177,18 +177,17 @@ export default function BookingModal({ isOpen, onClose, session }) {
       }
 
       if (isMulti) {
-        // Insert one lesson per selected student
-        const rows = form.student_ids.map(student_id => ({
+        const { error: insertError } = await supabase.from('lessons').insert([{
           coach_id: session.user.id,
-          student_id,
+          student_id: form.student_ids[0] || null,
+          student_ids: form.student_ids,
           court_id: form.court_id,
           type: form.type,
           start_time,
           duration_minutes: form.duration_minutes,
           is_recurring: form.is_recurring,
           recurring_pattern: form.is_recurring ? form.recurring_pattern : null,
-        }));
-        const { error: insertError } = await supabase.from('lessons').insert(rows);
+        }]);
         if (insertError) throw insertError;
       } else {
         const { error: insertError } = await supabase.from('lessons').insert([{

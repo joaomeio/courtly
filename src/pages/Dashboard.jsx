@@ -186,6 +186,7 @@ export default function Dashboard() {
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [allStudents, setAllStudents] = useState([]);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -203,14 +204,16 @@ export default function Dashboard() {
   const initDashboard = async () => {
     try {
       setLoading(true);
-      const [lessonsRes, studentsRes] = await Promise.all([
+      const [lessonsRes, studentsRes, allStudentsRes] = await Promise.all([
         supabase.from('lessons').select('*, students(full_name), courts(name)').neq('status', 'Cancelled'),
-        supabase.from('students').select('id', { count: 'exact' }).eq('status', 'Active')
+        supabase.from('students').select('id', { count: 'exact' }).eq('status', 'Active'),
+        supabase.from('students').select('id, full_name, experience_level')
       ]);
-      
+
       if (lessonsRes.error) throw lessonsRes.error;
       setLessons(lessonsRes.data || []);
       setStudentsCount(studentsRes.count || 0);
+      setAllStudents(allStudentsRes.data || []);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -243,19 +246,50 @@ export default function Dashboard() {
   const todaysMinutes = todaysLessonsRaw.reduce((total, lesson) => total + lesson.duration_minutes, 0);
   const todaysHours = (todaysMinutes / 60).toFixed(1);
 
-  // Transform raw lessons to new SESSIONS format
-  const colors = [
-    { bg: "#e0f2fe", color: "#0369a1" },
-    { bg: "#ede9fe", color: "#5b21b6" },
-    { bg: "#fce7f3", color: "#9d174d" },
-    { bg: "#edf7e0", color: "#4e8a13" },
-    { bg: "#fef3c7", color: "#92400e" },
-  ];
+  // Level-based color system
+  const LEVEL_COLORS = {
+    Beginner:     { bg: '#d1fae5', color: '#065f46' },
+    Intermediate: { bg: '#ffedd5', color: '#9a3412' },
+    Advanced:     { bg: '#dbeafe', color: '#1e40af' },
+    Elite:        { bg: '#ede9fe', color: '#5b21b6' },
+  };
+  const LEVEL_ORDER = ['Beginner', 'Intermediate', 'Advanced', 'Elite'];
+  const DEFAULT_LEVEL_COLOR = { bg: '#f1f5f9', color: '#475569' };
+
+  const getLevelColor = (level) => LEVEL_COLORS[level] || DEFAULT_LEVEL_COLOR;
+
+  const getLowestLevelColor = (ids) => {
+    const levels = ids.map(sid => allStudents.find(st => st.id === sid)?.experience_level).filter(Boolean);
+    let lowestIdx = LEVEL_ORDER.length;
+    for (const l of levels) {
+      const idx = LEVEL_ORDER.indexOf(l);
+      if (idx !== -1 && idx < lowestIdx) lowestIdx = idx;
+    }
+    return lowestIdx < LEVEL_ORDER.length ? getLevelColor(LEVEL_ORDER[lowestIdx]) : DEFAULT_LEVEL_COLOR;
+  };
 
   const mapLessonToSession = (lesson) => {
     const isGroup = lesson.type === 'Group' || lesson.type === 'Clinic';
-    const color = colors[lesson.id % colors.length] || colors[0];
-    const studentName = lesson.students?.full_name || 'Unknown';
+
+    let sessionStudents;
+    let sessionColor;
+
+    if (isGroup) {
+      const ids = lesson.student_ids || (lesson.student_id ? [lesson.student_id] : []);
+      sessionStudents = ids.map(sid => {
+        const s = allStudents.find(st => st.id === sid);
+        if (!s) return null;
+        const c = getLevelColor(s.experience_level);
+        return { name: s.full_name, avatar: s.full_name.charAt(0).toUpperCase(), bg: c.bg, color: c.color };
+      }).filter(Boolean);
+      sessionColor = ids.length > 0 ? getLowestLevelColor(ids) : DEFAULT_LEVEL_COLOR;
+    } else {
+      sessionColor = getLevelColor(lesson.students?.experience_level);
+      const name = lesson.students?.full_name || 'Unknown';
+      sessionStudents = [{ name, avatar: name.charAt(0).toUpperCase(), bg: sessionColor.bg, color: sessionColor.color }];
+    }
+
+    const studentName = sessionStudents[0]?.name || 'Unknown';
     const avatar = studentName.charAt(0).toUpperCase();
 
     // Determine status (done, now, upcoming)
@@ -270,15 +304,6 @@ export default function Dashboard() {
       status = 'done';
     }
 
-    // Mock extra students for visual variety if it's a group class but only 1 is in DB
-    const mockGroupStudents = [
-      { name: studentName, avatar, bg: color.bg, color: color.color }
-    ];
-    if (isGroup) {
-      mockGroupStudents.push({ name: 'Ana Souza', avatar: 'AS', bg: '#e0f2fe', color: '#0369a1' });
-      mockGroupStudents.push({ name: 'Bruno Lima', avatar: 'BL', bg: '#ede9fe', color: '#5b21b6' });
-    }
-
     return {
       id: lesson.id,
       time: format(lessonDate, 'HH:mm'),
@@ -289,9 +314,9 @@ export default function Dashboard() {
       court: lesson.courts?.name || 'No court',
       status,
       avatar,
-      avatarBg: color.bg,
-      avatarColor: color.color,
-      students: mockGroupStudents,
+      avatarBg: sessionColor.bg,
+      avatarColor: sessionColor.color,
+      students: sessionStudents,
       originalLesson: lesson
     };
   };
