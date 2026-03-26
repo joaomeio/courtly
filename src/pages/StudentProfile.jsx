@@ -32,15 +32,27 @@ export default function StudentProfile() {
     }
   };
 
-  // Mock performance stats
-  const performanceStats = [
-    { label: 'Forehand', score: '75%', trend: 'up', val: '5%' },
-    { label: 'Backhand', score: '62%', trend: 'down', val: '2%' },
-    { label: 'Serve', score: '80%', trend: 'up', val: '10%' }
-  ];
-
   const upcomingLessons = lessons.filter(l => parseISO(l.start_time) >= new Date()).slice(0, 3);
   const pastLessons = lessons.filter(l => parseISO(l.start_time) < new Date() && l.status !== 'Cancelled');
+
+  const getWeeklyRate = () => {
+    if (lessons.length < 2) return lessons.length;
+    const sortedDates = lessons.map(l => parseISO(l.start_time).getTime()).sort((a,b) => a - b);
+    const first = sortedDates[0];
+    const last = new Date().getTime();
+    const weeks = Math.max(1, (last - first) / (1000 * 60 * 60 * 24 * 7));
+    return (lessons.length / weeks).toFixed(1);
+  };
+
+  const totalLessons = lessons.length;
+  const cancelledLessons = lessons.filter(l => l.status === 'Cancelled').length;
+  const cancelRate = totalLessons > 0 ? Math.round((cancelledLessons / totalLessons) * 100) : 0;
+  
+  const performanceStats = [
+    { label: 'Total Lessons', score: totalLessons.toString(), trend: 'up', val: 'All time' },
+    { label: 'Sessions / Wk', score: getWeeklyRate().toString(), trend: 'up', val: 'Average' },
+    { label: 'Cancel Rate', score: cancelRate + '%', trend: cancelRate > 20 ? 'down' : 'up', val: cancelledLessons + ' total' }
+  ];
 
   if (loading) {
     return <div className="flex justify-center py-12"><div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div></div>;
@@ -157,26 +169,46 @@ export default function StudentProfile() {
             </div>
           </div>
 
-          {/* Coach's Notes Section (Last Past Lesson Note) */}
-          {pastLessons.length > 0 && pastLessons[0].cancellation_reason && (
-             <div className="px-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-bold tracking-widest uppercase text-slate-500 flex items-center gap-2">
-                  <FileEdit size={16} />
-                  Last Session Note
-                </h3>
-              </div>
-              <div className="bg-white rounded-xl p-5 border border-slate-200 border-l-4 border-l-primary shadow-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-bold text-slate-800">Coach's Log</span>
-                  <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest bg-slate-100 px-2 py-1 rounded-md">{format(parseISO(pastLessons[0].start_time), 'MMM d, yyyy')}</span>
+        {/* Lesson History Timeline (Mobile) */}
+          <div className="px-4 mt-6">
+            <h3 className="text-sm font-bold tracking-widest uppercase text-slate-500 mb-3 flex items-center gap-2">
+              <CalendarPlus size={16} />
+              Lesson History
+            </h3>
+            
+            {pastLessons.length === 0 ? (
+              <p className="text-slate-500 text-sm bg-white p-4 rounded-xl text-center border border-slate-200 border-dashed shadow-sm">No past lessons found.</p>
+            ) : (
+              <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm relative overflow-hidden">
+                <div className="absolute left-[33px] top-6 bottom-6 w-px bg-slate-100"></div>
+                <div className="space-y-6 relative z-10">
+                  {pastLessons.slice(0, 5).map(lesson => (
+                    <div key={lesson.id} className="flex gap-4 relative">
+                      <div className="w-4 h-4 rounded-full border-4 border-white bg-slate-300 shadow-sm mt-1 z-10 shrink-0 mx-auto"></div>
+                      <div className="flex-1 pb-2">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="text-sm font-bold text-slate-900 m-0 leading-tight">{format(parseISO(lesson.start_time), 'MMM d, yyyy')}</p>
+                            <p className="text-xs text-slate-500 m-0 mt-0.5">{lesson.type} • {lesson.courts?.name || 'No Court'}</p>
+                          </div>
+                          <span className="text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-500 shrink-0">Done</span>
+                        </div>
+                        
+                        {lesson.cancellation_reason && (
+                          <div className="mt-2.5 bg-slate-50 border border-slate-200 rounded-lg p-3">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1">
+                              <FileEdit size={10} /> Internal Note
+                            </p>
+                            <p className="text-xs text-slate-600 italic m-0">"{lesson.cancellation_reason}"</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <p className="text-slate-600 text-sm leading-relaxed italic">
-                  "{pastLessons[0].cancellation_reason}"
-                </p>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 

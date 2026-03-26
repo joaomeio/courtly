@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { format, parseISO, isSameDay, differenceInWeeks, addDays } from 'date-fns';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams, useOutletContext } from 'react-router-dom';
 import LessonDetailsModal from '../components/LessonDetailsModal';
 import BookingModal from '../components/BookingModal'; // Needed for quick action
-import { Clock, TrendingUp, Users, PieChart, CreditCard, LayoutGrid, ArrowRight, ChevronRight, Calendar, UserPlus, Settings } from 'lucide-react';
+import { Clock, TrendingUp, Users, PieChart, CreditCard, LayoutGrid, ArrowRight, ChevronRight, Calendar, UserPlus, Settings, PartyPopper, CheckCircle2 } from 'lucide-react';
 
 // --- NEW DESKTOP COMPONENTS AND CONSTANTS ---
 
@@ -179,16 +179,26 @@ function QuickAction({ icon, label, onClick }) {
 // --- MAIN COMPONENT ---
 
 export default function Dashboard() {
+  const { session } = useOutletContext();
   const [lessons, setLessons] = useState([]);
   const [studentsCount, setStudentsCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     initDashboard();
-  }, []);
+    
+    // Check for Stripe success loopback
+    if (searchParams.get('checkout') === 'success') {
+      setShowSuccessModal(true);
+      // Clean up URL without reloading
+      setSearchParams(new URLSearchParams());
+    }
+  }, [searchParams]);
 
   const initDashboard = async () => {
     try {
@@ -307,6 +317,49 @@ export default function Dashboard() {
 
   return (
     <>
+      {/* ═══════════════════════════════════════════════════
+          SUCCESS MODAL (Post Stripe Checkout)
+      ═══════════════════════════════════════════════════ */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl relative overflow-hidden text-center animate-in zoom-in-95 duration-300 delay-100">
+            {/* Confetti-like background element */}
+            <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/20 rounded-full blur-3xl" />
+            <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-amber-500/20 rounded-full blur-3xl" />
+            
+            <div className="relative z-10 flex flex-col items-center">
+              <div className="w-20 h-20 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-6 shadow-inner ring-8 ring-primary/5">
+                <PartyPopper size={36} strokeWidth={2.5} className="animate-bounce" />
+              </div>
+              
+              <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">Welcome to Pro!</h2>
+              <p className="text-sm font-medium text-slate-500 mb-6 leading-relaxed">
+                Your subscription is active. You now have unlimited access to the 250+ drill library, recurring lesson scheduling, and unbounded rosters.
+              </p>
+
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl w-full p-4 mb-8 text-left space-y-3">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Quick Start</p>
+                <Link to="/drills" onClick={() => setShowSuccessModal(false)} className="flex items-center justify-between group p-2 rounded-lg hover:bg-white hover:shadow-sm transition-all text-sm font-bold text-slate-700">
+                  <span className="flex items-center gap-2"><CheckCircle2 size={16} className="text-primary"/> Browse Pro Drills</span>
+                  <ChevronRight size={16} className="text-slate-300 group-hover:text-primary" />
+                </Link>
+                <Link to="/schedule" onClick={() => setShowSuccessModal(false)} className="flex items-center justify-between group p-2 rounded-lg hover:bg-white hover:shadow-sm transition-all text-sm font-bold text-slate-700">
+                  <span className="flex items-center gap-2"><CheckCircle2 size={16} className="text-primary"/> Set up Recurring Lessons</span>
+                  <ChevronRight size={16} className="text-slate-300 group-hover:text-primary" />
+                </Link>
+              </div>
+
+              <button 
+                onClick={() => setShowSuccessModal(false)}
+                className="w-full py-4 rounded-xl flex items-center justify-center font-bold text-sm bg-primary text-white hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+              >
+                Go to Dashboard
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ═══════════════════════════════════════════════════
           MOBILE LAYOUT
       ═══════════════════════════════════════════════════ */}
@@ -505,6 +558,7 @@ export default function Dashboard() {
       <BookingModal
         isOpen={isBookingModalOpen}
         onClose={() => { setIsBookingModalOpen(false); initDashboard(); }}
+        session={session}
       />
     </>
   );

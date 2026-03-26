@@ -27,7 +27,10 @@ Deno.serve(async (req) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) throw new Error('Unauthorized');
 
-    const { priceId } = await req.json();
+    const body = await req.json();
+    const priceId = body.priceId;
+    const successUrl = body.successUrl || `${req.headers.get('origin')}/settings?checkout=success`;
+    const cancelUrl = body.cancelUrl || `${req.headers.get('origin')}/settings`;
 
     // Get or create the Stripe customer
     const { data: profile } = await supabase
@@ -54,8 +57,8 @@ Deno.serve(async (req) => {
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
       mode: 'subscription',
-      success_url: `${req.headers.get('origin')}/settings?checkout=success`,
-      cancel_url: `${req.headers.get('origin')}/settings`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       metadata: { supabase_user_id: user.id },
     });
 

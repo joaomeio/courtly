@@ -96,19 +96,15 @@ export default function Students() {
       <div className="lg:hidden flex flex-col min-h-screen bg-slate-50 relative">
         {/* Header with Search */}
         <div className="bg-white p-4 border-b border-primary/10 sticky top-0 z-20 shadow-sm">
-          <label className="flex flex-col h-12 w-full">
-            <div className="flex w-full items-stretch rounded-xl overflow-hidden border border-slate-200 bg-slate-50 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
-              <div className="text-slate-400 flex items-center justify-center pl-4 bg-transparent">
-                <Search size={20} />
-              </div>
-              <input
-                className="flex w-full flex-1 bg-transparent text-slate-900 outline-none placeholder:text-slate-400 px-4 pl-2 h-full text-sm font-medium"
-                placeholder="Search students by name"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-          </label>
+          <div className="relative">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input 
+              value={search} 
+              onChange={e => setSearch(e.target.value)} 
+              placeholder="Search students by name"
+              className="w-full pl-9 pr-4 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 focus:border-primary focus:ring-1 focus:ring-primary outline-none" 
+            />
+          </div>
         </div>
 
         {/* Tabs */}

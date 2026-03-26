@@ -27,11 +27,10 @@ export default function AddStudentModal({ isOpen, onClose, onStudentAdded }) {
     setError(null);
 
     try {
-      const { experience_level, ...insertData } = formData;
       const { data, error: insertError } = await supabase
         .from('students')
         .insert([{ 
-          ...insertData,
+          ...formData, // Spread all formData fields including experience_level
           coach_id: session?.user?.id
         }])
         .select()

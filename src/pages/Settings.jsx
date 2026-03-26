@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
-import { useOutletContext, useSearchParams } from 'react-router-dom';
+import { useOutletContext, useSearchParams, useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useSubscription } from '../contexts/SubscriptionContext';
-import { User, Palette, ChevronRight, CreditCard, HelpCircle, LogOut, Bell, Calendar, Check, Save, Zap, Star, Loader } from 'lucide-react';
+import { User, Palette, ChevronRight, CreditCard, HelpCircle, LogOut, Bell, Calendar, Check, Save, Zap, Star, Loader, Sun, Moon } from 'lucide-react';
 import UpgradeModal from '../components/UpgradeModal';
 
 export default function Settings() {
   const { session } = useOutletContext();
-  const { themeId, setThemeId, themes } = useTheme();
+  const { themeMode, setThemeMode } = useTheme();
   const { plan, isPro } = useSubscription();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const [checkoutSuccess, setCheckoutSuccess] = useState(false);
@@ -57,28 +58,8 @@ export default function Settings() {
     }
   };
 
-  const handleManageBilling = async () => {
-    setPortalLoading(true);
-    try {
-      const { data: { session: authSession } } = await supabase.auth.getSession();
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-portal`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${authSession?.access_token}`,
-          },
-        }
-      );
-      const { url, error: fnError } = await res.json();
-      if (fnError) throw new Error(fnError);
-      window.location.href = url;
-    } catch (err) {
-      alert('Could not open billing portal: ' + err.message);
-    } finally {
-      setPortalLoading(false);
-    }
+  const handleManageBilling = () => {
+    navigate('/pricing');
   };
 
   const userInitial = fullName ? fullName.charAt(0).toUpperCase() : (session?.user?.email?.charAt(0).toUpperCase() || 'C');
@@ -164,22 +145,20 @@ export default function Settings() {
               <h3 className="font-semibold text-slate-800">Appearance</h3>
             </div>
             <div className="p-4">
-              <p className="text-sm text-slate-500 mb-3">Accent Color</p>
-              <div className="grid grid-cols-3 gap-3">
-                {themes.map(t => (
-                  <button
-                    key={t.id}
-                    onClick={() => setThemeId(t.id)}
-                    className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${
-                      themeId === t.id 
-                        ? 'border-primary bg-primary/5 shadow-sm' 
-                        : 'border-transparent hover:bg-slate-50'
-                    }`}
-                  >
-                    <div className="w-8 h-8 rounded-full mb-2 shadow-sm" style={{ backgroundColor: t.color }} />
-                    <span className="text-[10px] font-medium text-slate-600 text-center leading-tight">{t.name}</span>
-                  </button>
-                ))}
+              <p className="text-sm text-slate-500 mb-3">Theme Mode</p>
+              <div className="flex bg-slate-100 rounded-xl p-1 gap-1">
+                <button
+                  onClick={() => setThemeMode('light')}
+                  className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-lg text-sm font-bold transition-all ${themeMode === 'light' ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                  <Sun size={18} /> Light
+                </button>
+                <button
+                  onClick={() => setThemeMode('dark')}
+                  className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-lg text-sm font-bold transition-all ${themeMode === 'dark' ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                  <Moon size={18} /> Dark
+                </button>
               </div>
             </div>
           </div>
@@ -232,14 +211,14 @@ export default function Settings() {
               </div>
               <ChevronRight size={20} className="text-slate-300" />
             </button>
-             <button className="w-full flex items-center justify-between p-4 border-t border-slate-50 hover:bg-slate-50 transition-colors group text-left">
+             <button onClick={() => navigate('/pricing')} className="w-full flex items-center justify-between p-4 border-t border-slate-50 hover:bg-slate-50 transition-colors group text-left">
               <div className="flex items-center space-x-4">
                 <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center text-slate-500 group-hover:bg-primary/10 group-hover:text-primary transition-colors border border-slate-100 group-hover:border-primary/20">
                   <CreditCard size={18} />
                 </div>
                 <div>
                   <span className="block font-medium text-slate-700 text-sm">Subscription</span>
-                  <span className="text-xs text-primary font-semibold">Pro Plan Active</span>
+                  <span className={`text-xs font-semibold ${isPro ? 'text-primary' : 'text-slate-500'}`}>{isPro ? 'Pro Plan Active' : 'Free Plan'}</span>
                 </div>
               </div>
               <ChevronRight size={20} className="text-slate-300" />
@@ -406,24 +385,22 @@ export default function Settings() {
                 </div>
                 
                 <div className="p-6">
-                  <p className="text-sm font-semibold text-slate-700 mb-4">Choose Accent Color</p>
-                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-4">
-                    {themes.map(t => (
-                      <button
-                        key={t.id}
-                        onClick={() => setThemeId(t.id)}
-                        className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all group ${
-                          themeId === t.id 
-                            ? 'border-primary bg-primary/5 shadow-sm' 
-                            : 'border-slate-100 hover:border-slate-300 hover:bg-slate-50'
-                        }`}
-                      >
-                         <div className={`w-10 h-10 rounded-full mb-3 shadow-inner flex items-center justify-center text-white ${themeId === t.id ? 'scale-110' : 'scale-100'} transition-transform`} style={{ backgroundColor: t.color }}>
-                            {themeId === t.id && <Check size={18} strokeWidth={3} />}
-                         </div>
-                        <span className="text-[12px] font-bold text-slate-700 text-center leading-tight">{t.name}</span>
-                      </button>
-                    ))}
+                  <p className="text-sm font-semibold text-slate-700 mb-4">Choose Theme Mode</p>
+                  <div className="flex gap-4 max-w-sm">
+                    <button
+                      onClick={() => setThemeMode('light')}
+                      className={`flex-1 flex flex-col items-center justify-center gap-3 p-6 rounded-xl border-2 transition-all ${themeMode === 'light' ? 'border-primary bg-primary/5 text-primary shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300 text-slate-600'}`}
+                    >
+                      <Sun size={32} />
+                      <span className="font-bold">Light Mode</span>
+                    </button>
+                    <button
+                      onClick={() => setThemeMode('dark')}
+                      className={`flex-1 flex flex-col items-center justify-center gap-3 p-6 rounded-xl border-2 transition-all ${themeMode === 'dark' ? 'border-primary bg-primary/5 text-primary shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300 text-slate-600'}`}
+                    >
+                      <Moon size={32} />
+                      <span className="font-bold">Dark Mode</span>
+                    </button>
                   </div>
                 </div>
               </div>

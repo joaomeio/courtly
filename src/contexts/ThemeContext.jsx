@@ -2,36 +2,22 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 
 const ThemeContext = createContext();
 
-export const themes = [
-  { id: 'green', name: 'Courtly Green', color: '#66b319' },
-  { id: 'blue', name: 'Ocean Blue', color: '#0ea5e9' },
-  { id: 'rose', name: 'Sunset Rose', color: '#f43f5e' },
-  { id: 'amber', name: 'Golden Amber', color: '#f59e0b' },
-  { id: 'purple', name: 'Royal Purple', color: '#8b5cf6' },
-  { id: 'slate', name: 'Midnight Slate', color: '#64748b' },
-];
-
 export function ThemeProvider({ children }) {
-  const [themeId, setThemeId] = useState(() => {
-    return localStorage.getItem('courtly_theme') || 'green';
+  const [themeMode, setThemeMode] = useState(() => {
+    return localStorage.getItem('courtly_mode') || 'light';
   });
 
   useEffect(() => {
-    const selectedTheme = themes.find((t) => t.id === themeId) || themes[0];
-    // Update the CSS variable on the document root
-    document.documentElement.style.setProperty('--theme-primary', selectedTheme.color);
-    localStorage.setItem('courtly_theme', themeId);
-  }, [themeId]);
-
-  const value = {
-    themeId,
-    setThemeId,
-    themes,
-    currentTheme: themes.find((t) => t.id === themeId) || themes[0]
-  };
+    if (themeMode === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('courtly_mode', themeMode);
+  }, [themeMode]);
 
   return (
-    <ThemeContext.Provider value={value}>
+    <ThemeContext.Provider value={{ themeMode, setThemeMode }}>
       {children}
     </ThemeContext.Provider>
   );

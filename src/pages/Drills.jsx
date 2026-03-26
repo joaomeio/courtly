@@ -46,20 +46,34 @@ export default function Drills() {
     setLoading(false);
   };
 
-  const sourceList = tab === 'library' ? PRESET_DRILLS : myDrills;
+  // Build the library limit based on unique combinations for Free users
+  const availableLibraryDrills = React.useMemo(() => {
+    if (isPro) return PRESET_DRILLS;
+    const picked = [];
+    const seenCombos = new Set();
+    
+    for (const drill of PRESET_DRILLS) {
+      const comboKey = `${drill.category}-${drill.difficulty}`;
+      if (!seenCombos.has(comboKey)) {
+        seenCombos.add(comboKey);
+        picked.push(drill);
+        if (picked.length >= FREE_DRILL_LIMIT) break;
+      }
+    }
+    return picked;
+  }, [isPro]);
 
-  const allFiltered = sourceList.filter(d => {
+  const sourceList = tab === 'library' ? availableLibraryDrills : myDrills;
+
+  const filtered = sourceList.filter(d => {
     const s = d.name.toLowerCase().includes(search.toLowerCase()) ||
       (d.description || '').toLowerCase().includes(search.toLowerCase());
     const c = category === 'All' || d.category === category;
     const diff = difficulty === 'All' || d.difficulty === difficulty;
     return s && c && diff;
   });
-  // Limit preset drills to 50 for free users
-  const filtered = (tab === 'library' && !isPro)
-    ? allFiltered.slice(0, FREE_DRILL_LIMIT)
-    : allFiltered;
-  const showDrillUpgradeBanner = tab === 'library' && !isPro && allFiltered.length >= FREE_DRILL_LIMIT;
+
+  const showDrillUpgradeBanner = tab === 'library' && !isPro;
 
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -87,32 +101,45 @@ export default function Drills() {
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const DrillFilters = ({ mobile = false }) => (
-    <div className={`space-y-2 ${mobile ? '' : ''}`}>
-      <div className="flex gap-2">
+    <div className={`space-y-4 ${mobile ? '' : ''}`}>
+      {/* Segmented Control for Tabs */}
+      <div className="flex p-1 bg-slate-100 rounded-xl">
         <button onClick={() => setTab('library')}
-          className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors ${tab === 'library' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500'}`}>
-          📚 Library ({PRESET_DRILLS.length})
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold transition-all ${tab === 'library' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+          <span>Library</span>
+          <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-md ${tab === 'library' ? 'bg-slate-100 text-slate-500' : 'bg-slate-200/50 text-slate-400'}`}>
+            {isPro ? PRESET_DRILLS.length : FREE_DRILL_LIMIT}
+          </span>
         </button>
         <button onClick={() => setTab('my')}
-          className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors ${tab === 'my' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500'}`}>
-          🎯 My Drills ({myDrills.length})
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold transition-all ${tab === 'my' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+          <span>My Drills</span>
+          <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-md ${tab === 'my' ? 'bg-slate-100 text-slate-500' : 'bg-slate-200/50 text-slate-400'}`}>
+            {myDrills.length}
+          </span>
         </button>
       </div>
-      <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-        {ALL_CATEGORIES.map(c => (
-          <button key={c} onClick={() => setCategory(c)}
-            className={`px-3 py-1 rounded-full text-[11px] font-bold whitespace-nowrap transition-colors ${category === c ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500'}`}>
-            {c}
-          </button>
-        ))}
-      </div>
-      <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-        {ALL_DIFFICULTIES.map(d => (
-          <button key={d} onClick={() => setDifficulty(d)}
-            className={`px-3 py-1 rounded-full text-[11px] font-bold whitespace-nowrap transition-colors ${difficulty === d ? 'bg-slate-700 text-white' : 'bg-slate-100 text-slate-500'}`}>
-            {d}
-          </button>
-        ))}
+
+      {/* Scrollable Filters */}
+      <div className="space-y-3">
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none items-center">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1 shrink-0">Type</span>
+          {ALL_CATEGORIES.map(c => (
+            <button key={c} onClick={() => setCategory(c)}
+              className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold whitespace-nowrap transition-all border ${category === c ? 'bg-slate-800 border-slate-800 text-white shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'}`}>
+              {c}
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none items-center">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1 shrink-0">Level</span>
+          {ALL_DIFFICULTIES.map(d => (
+            <button key={d} onClick={() => setDifficulty(d)}
+              className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold whitespace-nowrap transition-all border ${difficulty === d ? 'bg-slate-800 border-slate-800 text-white shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'}`}>
+              {d}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -123,13 +150,6 @@ export default function Drills() {
           MOBILE LAYOUT
       ═══════════════════════════════════════ */}
       <div className="lg:hidden flex flex-col min-h-screen bg-slate-50 relative pb-24">
-        <div className="flex items-center bg-white p-4 justify-between sticky top-0 z-20 shadow-sm border-b border-slate-200">
-          <Link to="/" className="text-slate-500 hover:text-primary flex size-10 items-center justify-center rounded-full transition-colors bg-slate-50">
-            <ArrowLeft size={20} />
-          </Link>
-          <h2 className="text-lg font-bold leading-tight tracking-tight flex-1 text-center text-slate-900">Drill Library</h2>
-          <div className="w-10" />
-        </div>
 
         <div className="p-4 space-y-3 bg-white border-b border-slate-100">
           <div className="relative">
@@ -156,8 +176,8 @@ export default function Drills() {
           {showDrillUpgradeBanner && (
             <div className="mx-0 px-4 py-4 bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-xl flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs font-bold text-slate-800">🔒 Showing 25 of {allFiltered.length} drills</p>
-                <p className="text-[11px] text-slate-500 mt-0.5">Upgrade to Pro to unlock all {PRESET_DRILLS.length}+</p>
+                <p className="text-xs font-bold text-slate-800">🔒 Showing {availableLibraryDrills.length} of {PRESET_DRILLS.length} free drills</p>
+                <p className="text-[11px] text-slate-500 mt-0.5">Upgrade to Pro to unlock {PRESET_DRILLS.length}+ drills</p>
               </div>
               <button onClick={() => setUpgradeOpen(true)} className="px-3 py-1.5 bg-primary text-white text-xs font-bold rounded-lg shrink-0">Upgrade</button>
             </div>

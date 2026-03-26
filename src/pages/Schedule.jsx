@@ -94,19 +94,6 @@ export default function Schedule() {
           MOBILE LAYOUT
       ═══════════════════════════════════════════════════ */}
       <div className="lg:hidden flex flex-col bg-slate-50 min-h-screen">
-        <header className="flex items-center justify-between p-4 bg-white border-b border-primary/10 sticky top-0 z-20 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="text-primary flex size-10 items-center justify-center rounded-lg bg-primary/10">
-              <Calendar size={20} />
-            </div>
-            <div>
-              <h2 className="text-slate-900 text-lg font-bold leading-tight tracking-tight">Weekly Schedule</h2>
-              <p className="text-xs text-slate-500 font-medium">
-                {format(weekDays[0], 'MMM d')} - {format(weekDays[6], 'MMM d, yyyy')}
-              </p>
-            </div>
-          </div>
-        </header>
 
         {/* Mini Calendar */}
         <div className="p-4 bg-white shadow-sm border-b border-primary/5">

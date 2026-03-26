@@ -18,6 +18,7 @@ import Drills from './pages/Drills';
 import Programs from './pages/Programs';
 import ProgramDetail from './pages/ProgramDetail';
 import Pricing from './pages/Pricing';
+import Offer from './pages/Offer';
 
 function App() {
   const [session, setSession] = useState(null);
@@ -72,6 +73,7 @@ function App() {
             <Route path="programs" element={<Programs />} />
             <Route path="programs/:id" element={<ProgramDetail />} />
             <Route path="pricing" element={<Pricing />} />
+            <Route path="offer" element={<Offer />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
