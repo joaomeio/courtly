@@ -56,8 +56,8 @@ function App() {
   // If logged in, show app layout
   return (
     <Router>
-      <Routes>
-        <SubscriptionProvider session={session}>
+      <SubscriptionProvider session={session}>
+        <Routes>
           <Route path="/" element={<Layout session={session} />}>
             <Route index element={<Dashboard />} />
             <Route path="schedule" element={<Schedule />} />
@@ -71,9 +71,9 @@ function App() {
             <Route path="programs" element={<Programs />} />
             <Route path="programs/:id" element={<ProgramDetail />} />
           </Route>
-        </SubscriptionProvider>
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </SubscriptionProvider>
     </Router>
   );
 }
