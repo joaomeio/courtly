@@ -5,8 +5,11 @@ import BottomNav from './BottomNav';
 import Sidebar from './Sidebar';
 import BookingModal from './BookingModal';
 import NotificationsDropdown from './NotificationsDropdown';
+import OnboardingModal from './OnboardingModal';
+import { useSubscription } from '../contexts/SubscriptionContext';
 
 export default function Layout({ session }) {
+  const { onboardingCompleted } = useSubscription();
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const location = useLocation();
   const isDashboard = location.pathname === '/';
@@ -74,6 +77,9 @@ export default function Layout({ session }) {
         onClose={() => setIsBookingModalOpen(false)}
         session={session}
       />
+
+      {/* Onboarding Modal */}
+      {!onboardingCompleted && <OnboardingModal />}
     </div>
   );
 }

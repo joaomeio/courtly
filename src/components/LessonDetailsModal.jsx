@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '../supabaseClient';
-import { ArrowLeft, MoreVertical, ShieldCheck, Clock, LayoutGrid, Loader2, Repeat, Target, MessageSquare, CheckCircle2, XCircle, Trash2 } from 'lucide-react';
+import { ArrowLeft, MoreVertical, ShieldCheck, Clock, LayoutGrid, Loader2, Repeat, Target, MessageSquare, CheckCircle2, XCircle, Trash2, DollarSign } from 'lucide-react';
+import InvoiceModal from './InvoiceModal';
 
 export default function LessonDetailsModal({ isOpen, onClose, lesson, onUpdate }) {
   const [completing, setCompleting] = useState(false);
@@ -13,6 +14,8 @@ export default function LessonDetailsModal({ isOpen, onClose, lesson, onUpdate }
   const [feedback, setFeedback] = useState('');
   const [rescheduleDate, setRescheduleDate] = useState('');
   const [rescheduleTime, setRescheduleTime] = useState('');
+  const [chargeFee, setChargeFee] = useState(false);
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const saveTimer = useRef(null);
 
   useEffect(() => {
@@ -58,9 +61,15 @@ export default function LessonDetailsModal({ isOpen, onClose, lesson, onUpdate }
         .from('lessons')
         .update({ status: 'Cancelled' })
         .eq('id', lesson.id);
+      
       if (error) throw error;
       onUpdate?.();
-      onClose();
+      
+      if (chargeFee) {
+        setIsInvoiceModalOpen(true);
+      } else {
+        onClose();
+      }
     } catch (err) {
       console.error('Error cancelling lesson:', err);
     } finally {
@@ -231,6 +240,13 @@ export default function LessonDetailsModal({ isOpen, onClose, lesson, onUpdate }
                 {completing ? 'Completing...' : 'Complete Lesson'}
               </button>
               <button
+                onClick={() => setIsInvoiceModalOpen(true)}
+                className="w-full bg-primary/10 text-primary hover:bg-primary/20 font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95"
+              >
+                <DollarSign size={20} />
+                Create Invoice
+              </button>
+              <button
                 onClick={() => setShowReschedule(v => !v)}
                 className="w-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95"
               >
@@ -251,6 +267,21 @@ export default function LessonDetailsModal({ isOpen, onClose, lesson, onUpdate }
           ) : (
             <div className="rounded-xl border border-red-200 bg-red-50 p-4 space-y-3">
               <p className="text-sm font-semibold text-red-700 text-center">Are you sure you want to cancel this lesson?</p>
+              
+              {/* Cancellation Fee Logic */}
+              {new Date(lesson.start_time) - new Date() < 24 * 60 * 60 * 1000 && (
+                <div className="flex items-center gap-2 p-2 bg-white rounded-lg border border-red-100">
+                  <input 
+                    type="checkbox" 
+                    id="chargeFee" 
+                    checked={chargeFee} 
+                    onChange={e => setChargeFee(e.target.checked)}
+                    className="size-4 accent-primary"
+                  />
+                  <label htmlFor="chargeFee" className="text-xs font-bold text-slate-700">Charge Late Cancellation Fee?</label>
+                </div>
+              )}
+
               <div className="flex gap-2">
                 <button
                   onClick={() => setConfirmCancel(false)}
@@ -271,6 +302,12 @@ export default function LessonDetailsModal({ isOpen, onClose, lesson, onUpdate }
           )}
         </div>
       </main>
+      <InvoiceModal 
+        isOpen={isInvoiceModalOpen} 
+        onClose={() => setIsInvoiceModalOpen(false)} 
+        initialStudent={lesson.students ? { id: lesson.student_id, full_name: lesson.students.full_name } : null}
+        initialAmount={lesson.amount || ''}
+      />
     </div>
   );
 }

@@ -174,12 +174,17 @@ export default function Drills() {
           )}
           {/* Upgrade banner after 25 drills for free users */}
           {showDrillUpgradeBanner && (
-            <div className="mx-0 px-4 py-4 bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-xl flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-bold text-slate-800">🔒 Showing {availableLibraryDrills.length} of {PRESET_DRILLS.length} free drills</p>
-                <p className="text-[11px] text-slate-500 mt-0.5">Upgrade to Pro to unlock {PRESET_DRILLS.length}+ drills</p>
+            <div className="mx-0 px-4 py-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between gap-4 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center text-slate-600 shrink-0">
+                  <Lock size={18} />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-900 leading-tight">Showing {availableLibraryDrills.length} of {PRESET_DRILLS.length} free drills</p>
+                  <p className="text-[11px] text-slate-500 mt-1 leading-tight">Upgrade to Pro to unlock {PRESET_DRILLS.length}+ drills</p>
+                </div>
               </div>
-              <button onClick={() => setUpgradeOpen(true)} className="px-3 py-1.5 bg-primary text-white text-xs font-bold rounded-lg shrink-0">Upgrade</button>
+              <button onClick={() => setUpgradeOpen(true)} className="px-3 py-2 bg-primary text-white text-[11px] font-bold rounded-lg shrink-0 hover:bg-primary/90 transition-colors">Upgrade</button>
             </div>
           )}
         </div>

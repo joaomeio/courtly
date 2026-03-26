@@ -14,7 +14,7 @@ export default function Header({ session }) {
         {/* Courtly logo — switches between light and dark variants */}
         <Link to="/" className="flex items-center cursor-pointer">
           <img
-            src="/logo-light.png"
+            src="/logo-full.png"
             alt="Courtly"
             className="h-8 w-auto object-contain"
           />

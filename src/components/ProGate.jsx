@@ -25,8 +25,8 @@ export default function ProGate({ children, feature = 'This feature', descriptio
   return (
     <>
       <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center">
-        <div className="w-20 h-20 rounded-2xl bg-slate-100 flex items-center justify-center mb-5">
-          <Lock size={32} className="text-slate-400" />
+        <div className="flex items-center justify-center mb-5">
+          <Lock size={40} className="text-slate-600" />
         </div>
         <h2 className="text-2xl font-bold text-slate-900 mb-2">{feature}</h2>
         <p className="text-slate-500 text-sm max-w-xs mb-6 leading-relaxed">
@@ -38,7 +38,7 @@ export default function ProGate({ children, feature = 'This feature', descriptio
         >
           Upgrade to Pro →
         </button>
-        <p className="text-xs text-slate-400 mt-3">14-day free trial · Cancel anytime</p>
+        <p className="text-xs text-slate-400 mt-3">Cancel anytime</p>
       </div>
       <UpgradeModal isOpen={modalOpen} onClose={() => setModalOpen(false)} feature={feature} />
     </>

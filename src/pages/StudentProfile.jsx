@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { format, parseISO } from 'date-fns';
-import { ArrowLeft, Settings, ShieldCheck, Mail, CalendarPlus, BarChart2, TrendingUp, TrendingDown, ArrowRight, ChevronRight, FileEdit, Check, X } from 'lucide-react';
+import { ArrowLeft, Settings, ShieldCheck, Mail, CalendarPlus, BarChart2, TrendingUp, TrendingDown, ArrowRight, ChevronRight, FileEdit, Check, X, Lock } from 'lucide-react';
+import { useSubscription } from '../contexts/SubscriptionContext';
+import UpgradeModal from '../components/UpgradeModal';
 
 export default function StudentProfile() {
   const { id } = useParams();
@@ -11,7 +13,9 @@ export default function StudentProfile() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [editData, setEditData] = useState({ full_name: '', email: '', phone: '', experience_level: '' });
+  const { isPro } = useSubscription();
 
   useEffect(() => {
     fetchStudentData();
@@ -212,18 +216,33 @@ export default function StudentProfile() {
             <h3 className="text-sm font-bold tracking-widest uppercase text-slate-500 mb-3 flex items-center gap-2">
               <BarChart2 size={16} />
               Performance Stats
+              {!isPro && <Lock size={12} className="text-slate-600 shadow-none" />}
             </h3>
-            <div className="grid grid-cols-3 gap-3">
-              {performanceStats.map(stat => (
-                <div key={stat.label} className="flex flex-col gap-1 rounded-xl p-4 bg-white border border-slate-200 shadow-sm transition-transform hover:-translate-y-1">
-                  <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">{stat.label}</p>
-                  <p className="text-xl font-bold">{stat.score}</p>
-                  <p className={`text-[10px] font-bold uppercase flex items-center gap-0.5 ${stat.trend === 'up' ? 'text-primary' : 'text-amber-500'}`}>
-                    {stat.trend === 'up' ? <TrendingUp size={12} /> : <TrendingDown size={12} />} {stat.val}
-                  </p>
+            
+            {isPro ? (
+              <div className="grid grid-cols-3 gap-3">
+                {performanceStats.map(stat => (
+                  <div key={stat.label} className="flex flex-col gap-1 rounded-xl p-4 bg-white border border-slate-200 shadow-sm transition-transform hover:-translate-y-1">
+                    <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">{stat.label}</p>
+                    <p className="text-xl font-bold">{stat.score}</p>
+                    <p className={`text-[10px] font-bold uppercase flex items-center gap-0.5 ${stat.trend === 'up' ? 'text-primary' : 'text-amber-500'}`}>
+                      {stat.trend === 'up' ? <TrendingUp size={12} /> : <TrendingDown size={12} />} {stat.val}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div 
+                onClick={() => setIsUpgradeModalOpen(true)}
+                className="bg-white border border-slate-200 rounded-2xl p-6 text-center cursor-pointer hover:border-primary/50 transition-all shadow-sm group"
+              >
+                <div className="flex items-center justify-center mx-auto mb-3 text-slate-600 group-hover:text-primary transition-colors">
+                  <Lock size={20} />
                 </div>
-              ))}
-            </div>
+                <p className="text-xs font-bold text-slate-900">Unlock Performance Insights</p>
+                <p className="text-[10px] text-slate-500 mt-1">Upgrade to Pro to see detailed stats and trends.</p>
+              </div>
+            )}
           </div>
 
           {/* Upcoming Lessons */}
@@ -424,20 +443,37 @@ export default function StudentProfile() {
 
               {/* Stats */}
               <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                <p className="text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-4">Performance Insights</p>
-                <div className="flex flex-col gap-4">
-                  {performanceStats.map(stat => (
-                    <div key={stat.label} className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-slate-900">{stat.label}</span>
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-bold text-slate-900">{stat.score}</span>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-0.5 ${stat.trend === 'up' ? 'bg-primary/10 text-primary' : 'bg-rose-100 text-rose-600'}`}>
-                          {stat.trend === 'up' ? <TrendingUp size={10} /> : <TrendingDown size={10} />} {stat.val}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-[10px] font-bold tracking-widest uppercase text-slate-500">Performance Insights</p>
+                  {!isPro && <Lock size={12} className="text-slate-600" />}
                 </div>
+
+                {isPro ? (
+                  <div className="flex flex-col gap-4">
+                    {performanceStats.map(stat => (
+                      <div key={stat.label} className="flex items-center justify-between">
+                        <span className="text-sm font-semibold text-slate-900">{stat.label}</span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-bold text-slate-900">{stat.score}</span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-0.5 ${stat.trend === 'up' ? 'bg-primary/10 text-primary' : 'bg-rose-100 text-rose-600'}`}>
+                            {stat.trend === 'up' ? <TrendingUp size={10} /> : <TrendingDown size={10} />} {stat.val}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div 
+                    onClick={() => setIsUpgradeModalOpen(true)}
+                    className="py-4 text-center cursor-pointer group"
+                  >
+                    <div className="flex items-center justify-center mx-auto mb-3 text-slate-600 group-hover:text-primary transition-colors">
+                      <Lock size={20} />
+                    </div>
+                    <p className="text-[13px] font-bold text-slate-900 leading-tight">Pro Analytics</p>
+                    <p className="text-[10px] text-slate-500 mt-1 px-4">Upgrade to unlock advanced performance tracking.</p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -516,6 +552,11 @@ export default function StudentProfile() {
           </div>
         </div>
       </div>
+      <UpgradeModal
+        isOpen={isUpgradeModalOpen}
+        onClose={() => setIsUpgradeModalOpen(false)}
+        feature="Performance Insights"
+      />
     </>
   );
 }

@@ -224,7 +224,7 @@ export default function Sidebar({ session, onAddClick }) {
         }}
       >
         <img
-          src="/logo-dark.png"
+          src="/logo-full.png"
           alt="Courtly"
           style={{ height: 28, width: "auto", display: "block" }}
         />

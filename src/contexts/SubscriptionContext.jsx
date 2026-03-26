@@ -4,20 +4,22 @@ import { supabase } from '../supabaseClient';
 const SubscriptionContext = createContext({
   plan: 'free',
   isPro: false,
+  onboardingCompleted: true, // Default to true to prevent flicker
   isLoading: true,
   refresh: () => {},
 });
 
 export function SubscriptionProvider({ children, session }) {
   const [plan, setPlan] = useState('free');
+  const [onboardingCompleted, setOnboardingCompleted] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchPlan = async () => {
+  const fetchProfile = async () => {
     if (!session?.user) { setIsLoading(false); return; }
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('plan')
+        .select('plan, onboarding_completed')
         .eq('id', session.user.id)
         .single();
 
@@ -26,10 +28,13 @@ export function SubscriptionProvider({ children, session }) {
         await supabase.from('profiles').insert({
           id: session.user.id,
           plan: 'free',
+          onboarding_completed: false
         });
         setPlan('free');
+        setOnboardingCompleted(false);
       } else {
         setPlan(data?.plan || 'free');
+        setOnboardingCompleted(data?.onboarding_completed ?? false);
       }
     } catch {
       setPlan('free');
@@ -38,10 +43,16 @@ export function SubscriptionProvider({ children, session }) {
     }
   };
 
-  useEffect(() => { fetchPlan(); }, [session?.user?.id]);
+  useEffect(() => { fetchProfile(); }, [session?.user?.id]);
 
   return (
-    <SubscriptionContext.Provider value={{ plan, isPro: plan === 'pro', isLoading, refresh: fetchPlan }}>
+    <SubscriptionContext.Provider value={{ 
+      plan, 
+      isPro: plan === 'pro', 
+      onboardingCompleted, 
+      isLoading, 
+      refresh: fetchProfile 
+    }}>
       {children}
     </SubscriptionContext.Provider>
   );

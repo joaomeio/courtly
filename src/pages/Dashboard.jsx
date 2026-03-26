@@ -4,7 +4,8 @@ import { format, parseISO, isSameDay, differenceInWeeks, addDays } from 'date-fn
 import { Link, useNavigate, useSearchParams, useOutletContext } from 'react-router-dom';
 import LessonDetailsModal from '../components/LessonDetailsModal';
 import BookingModal from '../components/BookingModal'; // Needed for quick action
-import { Clock, TrendingUp, Users, PieChart, CreditCard, LayoutGrid, ArrowRight, ChevronRight, Calendar, UserPlus, Settings, PartyPopper, CheckCircle2 } from 'lucide-react';
+import { Clock, TrendingUp, Users, PieChart, CreditCard, LayoutGrid, ArrowRight, ChevronRight, Calendar, UserPlus, Settings, PartyPopper, CheckCircle2, DollarSign } from 'lucide-react';
+import InvoiceModal from '../components/InvoiceModal';
 
 // --- NEW DESKTOP COMPONENTS AND CONSTANTS ---
 
@@ -187,6 +188,7 @@ export default function Dashboard() {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [allStudents, setAllStudents] = useState([]);
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -540,7 +542,7 @@ export default function Dashboard() {
                 <div className="flex gap-3">
                   <QuickAction onClick={() => setIsBookingModalOpen(true)} label="New Session" icon={<svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M8.5 2.5v12M2.5 8.5h12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>} />
                   <QuickAction onClick={() => navigate('/students')} label="Add Student" icon={<svg width="17" height="17" viewBox="0 0 17 17" fill="none"><circle cx="8.5" cy="6" r="3" stroke="currentColor" strokeWidth="1.4"/><path d="M3 14.5c0-2.5 2.5-4.5 5.5-4.5s5.5 2 5.5 4.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/><path d="M13 2.5v4M11 4.5h4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>} />
-                  <QuickAction onClick={() => navigate('/payments')} label="Log Payment" icon={<svg width="17" height="17" viewBox="0 0 17 17" fill="none"><rect x="2" y="5" width="13" height="9" rx="2" stroke="currentColor" strokeWidth="1.4"/><path d="M2 8.5h13" stroke="currentColor" strokeWidth="1.4"/><rect x="4" y="11" width="3.5" height="1.5" rx="0.5" fill="currentColor" opacity="0.5"/></svg>} />
+                  <QuickAction onClick={() => setIsInvoiceModalOpen(true)} label="Log Invoice" icon={<DollarSign size={18} strokeWidth={1.5} />} />
                   <QuickAction onClick={() => navigate('/courts')} label="Book Court" icon={<svg width="17" height="17" viewBox="0 0 17 17" fill="none"><rect x="2" y="2" width="13" height="13" rx="2" stroke="currentColor" strokeWidth="1.4"/><path d="M8.5 2v13M2 8.5h13" stroke="currentColor" strokeWidth="1.4"/></svg>} />
                   <QuickAction onClick={() => navigate('/schedule')} label="Calendar" icon={<Calendar size={18} strokeWidth={1.5} />} />
                 </div>
@@ -584,6 +586,10 @@ export default function Dashboard() {
         isOpen={isBookingModalOpen}
         onClose={() => { setIsBookingModalOpen(false); initDashboard(); }}
         session={session}
+      />
+      <InvoiceModal
+        isOpen={isInvoiceModalOpen}
+        onClose={() => { setIsInvoiceModalOpen(false); initDashboard(); }}
       />
     </>
   );

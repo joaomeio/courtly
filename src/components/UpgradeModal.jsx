@@ -46,11 +46,11 @@ export default function UpgradeModal({ isOpen, onClose, feature = 'This feature'
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-6 text-center">
-          <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-3">
-            <Lock size={22} className="text-primary" />
+        <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-8 text-center">
+          <div className="flex items-center justify-center mx-auto mb-4">
+            <Lock size={32} className="text-slate-400" />
           </div>
-          <h2 className="text-white text-xl font-bold">Upgrade to Pro</h2>
+          <h2 className="text-white text-2xl font-bold">Upgrade to Pro</h2>
           <p className="text-slate-400 text-sm mt-1">
             {feature} is a Pro feature.
           </p>
@@ -80,7 +80,7 @@ export default function UpgradeModal({ isOpen, onClose, feature = 'This feature'
           <div className="text-center mb-4">
             <span className="text-3xl font-black text-slate-900">$29</span>
             <span className="text-slate-500 text-sm">/month</span>
-            <p className="text-xs text-slate-400 mt-1">Cancel anytime · 14-day free trial</p>
+            <p className="text-xs text-slate-400 mt-1">Cancel anytime</p>
           </div>
 
           {error && <p className="text-red-500 text-xs text-center mb-3">{error}</p>}
