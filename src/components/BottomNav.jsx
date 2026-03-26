@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, CalendarDays, Dumbbell, Users } from 'lucide-react';
+import { Home, CalendarDays, Dumbbell, Users, Zap } from 'lucide-react';
 
 export default function BottomNav() {
   const baseClasses = "flex flex-col items-center gap-1.5 transition-colors flex-1";
@@ -28,6 +28,11 @@ export default function BottomNav() {
         <NavLink to="/students" className={({ isActive }) => `${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}>
           <Users size={24} className="mb-0.5" />
           <span className="text-[9px] font-bold uppercase tracking-widest">Students</span>
+        </NavLink>
+
+        <NavLink to="/pricing" className={({ isActive }) => `${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}>
+          <Zap size={24} className="mb-0.5" />
+          <span className="text-[9px] font-bold uppercase tracking-widest">Pro</span>
         </NavLink>
       </div>
     </nav>

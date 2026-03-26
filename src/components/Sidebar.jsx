@@ -112,6 +112,21 @@ const NAV_ITEMS = [
       },
     ],
   },
+  {
+    section: "Account",
+    items: [
+      {
+        id: "pricing",
+        path: "/pricing",
+        label: "Pro & Billing",
+        icon: (
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M9 2L3 9H8l-1 5 6-7H8l1-5z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
+          </svg>
+        ),
+      },
+    ],
+  },
 ];
 
 const COLORS = {

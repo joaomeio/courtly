@@ -23,7 +23,7 @@ export default function Students() {
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const navigate = useNavigate();
   const { isPro } = useSubscription();
-  const FREE_LIMIT = 10;
+  const FREE_LIMIT = 5;
   const atLimit = !isPro && students.length >= FREE_LIMIT;
 
   const handleAddStudent = () => {

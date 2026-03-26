@@ -31,7 +31,7 @@ export default function Drills() {
   const [selectedDrill, setSelectedDrill] = useState(null);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const { isPro } = useSubscription();
-  const FREE_DRILL_LIMIT = 50;
+  const FREE_DRILL_LIMIT = 25;
 
   useEffect(() => { if (session) fetchMyDrills(); }, [session]);
 
@@ -152,11 +152,11 @@ export default function Drills() {
           ) : (
             filtered.map(d => <DrillCard key={d.id} drill={d} onClick={() => setSelectedDrill(d)} />)
           )}
-          {/* Upgrade banner after 50 drills for free users */}
+          {/* Upgrade banner after 25 drills for free users */}
           {showDrillUpgradeBanner && (
             <div className="mx-0 px-4 py-4 bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-xl flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs font-bold text-slate-800">🔒 Showing 50 of {allFiltered.length} drills</p>
+                <p className="text-xs font-bold text-slate-800">🔒 Showing 25 of {allFiltered.length} drills</p>
                 <p className="text-[11px] text-slate-500 mt-0.5">Upgrade to Pro to unlock all {PRESET_DRILLS.length}+</p>
               </div>
               <button onClick={() => setUpgradeOpen(true)} className="px-3 py-1.5 bg-primary text-white text-xs font-bold rounded-lg shrink-0">Upgrade</button>
