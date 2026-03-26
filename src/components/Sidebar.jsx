@@ -217,40 +217,17 @@ export default function Sidebar({ session, onAddClick }) {
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 9,
           padding: "4px 8px 16px",
           borderBottom: `1px solid ${COLORS.border}`,
           marginBottom: 8,
           textDecoration: "none"
         }}
       >
-        <div
-          style={{
-            width: 30,
-            height: 30,
-            borderRadius: 8,
-            background: COLORS.green,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-          }}
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <circle cx="8" cy="5" r="2.5" stroke="white" strokeWidth="1.5" />
-            <path d="M2 13c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
-        </div>
-        <span
-          style={{
-            fontSize: 15,
-            fontWeight: 700,
-            color: COLORS.textPrimary,
-            letterSpacing: "-0.3px",
-          }}
-        >
-          Courtly
-        </span>
+        <img
+          src="/logo-dark.png"
+          alt="Courtly"
+          style={{ height: 28, width: "auto", display: "block" }}
+        />
       </Link>
 
       {/* Nav sections */}
