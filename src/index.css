@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background-light: #f8fafc;
+  --color-background-dark: #0f172a;
+  --color-primary: var(--theme-primary, #66b319); /* Dynamic Primary Color */
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+:root {
+  --primary: var(--theme-primary, #0ea5e9);
+  --bg-light: #f8fafc;
+}
+
+@layer base {
+  body {
+    background-color: var(--bg-light);
+    color: #0f172a;
+    font-family: "Inter", sans-serif;
+    min-height: max(884px, 100dvh);
+  }
+
+  /* Desktop: allow full-height sidebar layout */
+  @media (min-width: 1024px) {
+    body {
+      min-height: 100vh;
+      overflow: hidden;
+    }
+  }
+
+
+
+
+  /* Explicit primary color utility for places where tw class doesn't work */
+  .color-primary { color: var(--primary); }
+  .bg-primary-solid { background-color: var(--primary) !important; }
+
+  /* Desktop calendar grid for Schedule page */
+  .desktop-calendar-grid {
+    display: grid;
+    grid-template-columns: 80px repeat(7, 1fr);
+  }
+}
+

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Dark green C-arc circle, open on the right -->
+  <path d="M 80 30 A 38 38 0 1 0 80 70" stroke="#1a3d2b" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <!-- Lime green horizontal bar -->
+  <rect x="12" y="46" width="76" height="9" fill="#a8e05f" rx="1"/>
+</svg>
