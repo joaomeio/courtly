@@ -15,13 +15,16 @@ import {
   MoreVertical,
   Trash2
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useOutletContext, useSearchParams } from 'react-router-dom';
 import ProGate from '../components/ProGate';
+import StripeConnectBanner from '../components/StripeConnectBanner';
 import { supabase } from '../supabaseClient';
 import { format, parseISO, startOfMonth, endOfMonth, subMonths, isWithinInterval } from 'date-fns';
 import InvoiceModal from '../components/InvoiceModal';
 
 const Payments = () => {
+  const { session } = useOutletContext();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [invoices, setInvoices] = useState([]);
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,6 +34,10 @@ const Payments = () => {
 
   useEffect(() => {
     fetchFinancialData();
+    if (searchParams.get('onboarding') === 'complete' || searchParams.get('refresh') === 'true') {
+      // Clear search params to keep URL clean after returning from Stripe
+      setSearchParams({});
+    }
   }, []);
 
   const fetchFinancialData = async () => {
@@ -167,6 +174,7 @@ const Payments = () => {
         </div>
 
         <div className="p-4 space-y-4">
+          <StripeConnectBanner session={session} />
           {/* Metric Cards */}
           {/* Metrics Tab Selector (Mobile) */}
           <div className="flex bg-white p-1 rounded-xl shadow-sm border border-slate-200">
@@ -317,6 +325,8 @@ const Payments = () => {
               New Invoice
             </button>
           </div>
+
+          <StripeConnectBanner session={session} />
 
           <div className="grid grid-cols-[300px_1fr] gap-8 items-start">
             
