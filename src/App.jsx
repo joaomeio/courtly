@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 
 import { supabase } from './supabaseClient';
 import { SubscriptionProvider } from './contexts/SubscriptionContext';
+import { analytics } from './lib/analytics';
 
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
@@ -26,6 +27,9 @@ function App() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        analytics.identify(session.user.id, { email: session.user.email });
+      }
       setSession(session);
       setLoading(false);
     });
@@ -33,6 +37,11 @@ function App() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (_event === 'SIGNED_IN' && session?.user) {
+        analytics.identify(session.user.id, { email: session.user.email });
+      } else if (_event === 'SIGNED_OUT') {
+        analytics.reset();
+      }
       setSession(session);
     });
 

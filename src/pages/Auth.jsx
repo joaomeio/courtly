@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
+import { analytics, EVENTS } from '../lib/analytics';
 import { Mail, Lock, Loader, ArrowRight, LayoutGrid, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export default function Auth() {
@@ -28,6 +29,7 @@ export default function Auth() {
           options: { data: { full_name: fullName } }
         });
         if (error) throw error;
+        analytics.track(EVENTS.COACH_SIGNED_UP, { email });
         setMessage('Registration successful! Please check your email to verify your account.');
       }
     } catch (err) {
