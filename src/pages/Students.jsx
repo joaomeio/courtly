@@ -82,7 +82,7 @@ export default function Students() {
     return matchesSearch && matchesFilter;
   });
 
-  const filters = ['All', 'Beginner', 'Intermediate', 'Advanced', 'Elite'];
+  const filters = ['All', 'Beginner', 'Intermediate', 'Advanced'];
 
   if (loading) {
     return <div className="flex justify-center py-12"><div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div></div>;
@@ -95,7 +95,7 @@ export default function Students() {
       ═══════════════════════════════════════════════════ */}
       <div className="lg:hidden flex flex-col min-h-screen bg-slate-50 relative">
         {/* Header with Search */}
-        <div className="bg-white p-4 border-b border-primary/10 sticky top-0 z-20 shadow-sm">
+        <div className="bg-white p-4 border-b border-primary/10 sticky top-0 z-20 shadow-sm" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
           <div className="relative">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input 
@@ -110,7 +110,7 @@ export default function Students() {
         {/* Tabs */}
         <div className="overflow-x-auto hide-scrollbar bg-white shadow-sm sticky top-[80px] z-10 border-b border-slate-200">
           <div className="flex px-4 gap-8 whitespace-nowrap pt-2">
-            {['All', 'Beginner', 'Intermediate', 'Advanced', 'Elite'].map(t => (
+            {['All', 'Beginner', 'Intermediate', 'Advanced'].map(t => (
               <button
                 key={t}
                 onClick={() => setFilter(t)}

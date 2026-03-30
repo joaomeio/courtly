@@ -8,7 +8,7 @@ export default function BottomNav() {
   const inactiveClasses = "text-slate-400 hover:text-primary";
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-100 pb-8 pt-3 px-6 z-20">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-100 pt-3 px-6 z-20" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
       <div className="max-w-2xl mx-auto flex justify-around items-center">
         <NavLink to="/" end className={({ isActive }) => `${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}>
           <Home size={24} className="mb-0.5" />

@@ -96,7 +96,7 @@ export default function Schedule() {
       <div className="lg:hidden flex flex-col bg-slate-50 min-h-screen">
 
         {/* Mini Calendar */}
-        <div className="p-4 bg-white shadow-sm border-b border-primary/5">
+        <div className="p-4 bg-white shadow-sm border-b border-primary/5" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
           <div className="flex items-center justify-between mb-4 px-2">
             <button onClick={() => changeWeek('prev')} className="text-slate-400 hover:text-primary transition-colors">
               <ChevronLeft size={20} />

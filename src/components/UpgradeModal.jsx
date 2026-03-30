@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
+import { useSubscription } from '../contexts/SubscriptionContext';
 import { Zap, Lock, Check, Loader } from 'lucide-react';
 
-const PRO_PRICE_ID = 'price_1TF0pKCnYp1Fi3zgd9iK8AwL';
+// Web-only Stripe price ID (used when isNative is false)
+const WEB_PRICE_ID = 'price_1TF0pKCnYp1Fi3zgd9iK8AwL';
 
 export default function UpgradeModal({ isOpen, onClose, feature = 'This feature' }) {
+  const { isNative, presentPaywall } = useSubscription();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -14,23 +17,32 @@ export default function UpgradeModal({ isOpen, onClose, feature = 'This feature'
     setLoading(true);
     setError('');
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session?.access_token}`,
-          },
-          body: JSON.stringify({ priceId: PRO_PRICE_ID }),
-        }
-      );
-      const { url, error: fnError } = await res.json();
-      if (fnError) throw new Error(fnError);
-      window.location.href = url;
+      if (isNative) {
+        // On native: delegate entirely to the RevenueCat native paywall UI.
+        // The paywall handles plan selection, pricing display, and purchase flow.
+        await presentPaywall();
+        onClose();
+      } else {
+        // On web: fall back to the Stripe checkout flow.
+        const { data: { session } } = await supabase.auth.getSession();
+        const res = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${session?.access_token}`,
+            },
+            body: JSON.stringify({ priceId: WEB_PRICE_ID }),
+          }
+        );
+        const { url, error: fnError } = await res.json();
+        if (fnError) throw new Error(fnError);
+        window.location.href = url;
+      }
     } catch (err) {
       setError(err.message || 'Something went wrong.');
+    } finally {
       setLoading(false);
     }
   };
@@ -77,11 +89,14 @@ export default function UpgradeModal({ isOpen, onClose, feature = 'This feature'
             ))}
           </ul>
 
-          <div className="text-center mb-4">
-            <span className="text-3xl font-black text-slate-900">$29</span>
-            <span className="text-slate-500 text-sm">/month</span>
-            <p className="text-xs text-slate-400 mt-1">Cancel anytime</p>
-          </div>
+          {/* Only show static pricing on web — native gets it from RC paywall */}
+          {!isNative && (
+            <div className="text-center mb-4">
+              <span className="text-3xl font-black text-slate-900">$29</span>
+              <span className="text-slate-500 text-sm">/month</span>
+              <p className="text-xs text-slate-400 mt-1">Cancel anytime</p>
+            </div>
+          )}
 
           {error && <p className="text-red-500 text-xs text-center mb-3">{error}</p>}
 
@@ -91,7 +106,7 @@ export default function UpgradeModal({ isOpen, onClose, feature = 'This feature'
             className="w-full flex items-center justify-center gap-2 py-3 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-all disabled:opacity-60"
           >
             {loading ? <Loader size={18} className="animate-spin" /> : <Zap size={18} />}
-            {loading ? 'Redirecting…' : 'Upgrade to Pro →'}
+            {loading ? 'Loading…' : 'Upgrade to Pro →'}
           </button>
 
           <button

@@ -64,7 +64,7 @@ export default function Layout({ session }) {
       <div className="flex flex-col lg:hidden min-h-screen">
         {isDashboard && <Header session={session} />}
 
-        <main className="flex-1 w-full max-w-2xl mx-auto pb-28">
+        <main className="flex-1 w-full max-w-2xl mx-auto" style={{ paddingBottom: 'calc(4.5rem + env(safe-area-inset-bottom))' }}>
           <Outlet context={{ session }} />
         </main>
 

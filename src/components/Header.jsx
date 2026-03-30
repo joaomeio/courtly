@@ -6,10 +6,10 @@ import { Zap } from 'lucide-react';
 
 export default function Header({ session }) {
   const coachName = session?.user?.user_metadata?.full_name || 'Coach';
-  const { isPro } = useSubscription();
+  const { isPro, isNative, presentPaywall } = useSubscription();
   
   return (
-    <header className="sticky top-0 z-10 bg-slate-50/90 backdrop-blur-md border-b border-primary/10">
+    <header className="sticky top-0 z-10 bg-slate-50/90 backdrop-blur-md border-b border-primary/10" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       <div className="flex items-center justify-between p-4 max-w-2xl mx-auto w-full">
         {/* Courtly logo — switches between light and dark variants */}
         <Link to="/" className="flex items-center cursor-pointer">
@@ -21,10 +21,21 @@ export default function Header({ session }) {
         </Link>
         <div className="flex items-center gap-3">
           {!isPro && (
-            <Link to="/pricing" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-[11px] font-bold">
-              <Zap size={13} fill="currentColor" />
-              Become Pro
-            </Link>
+            isNative
+              ? (
+                <button
+                  onClick={() => presentPaywall()}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-[11px] font-bold"
+                >
+                  <Zap size={13} fill="currentColor" />
+                  Become Pro
+                </button>
+              ) : (
+                <Link to="/pricing" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-[11px] font-bold">
+                  <Zap size={13} fill="currentColor" />
+                  Become Pro
+                </Link>
+              )
           )}
           <NotificationsDropdown />
           <Link to="/settings" className="flex items-center gap-2 group cursor-pointer transition-transform active:scale-95">

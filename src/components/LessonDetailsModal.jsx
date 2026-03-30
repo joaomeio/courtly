@@ -101,7 +101,7 @@ export default function LessonDetailsModal({ isOpen, onClose, lesson, onUpdate }
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-slate-50 text-slate-900 animate-in slide-in-from-bottom duration-300">
       {/* Header */}
-      <header className="flex items-center bg-white p-4 sticky top-0 z-10 border-b border-primary/10">
+      <header className="flex items-center bg-white p-4 sticky top-0 z-10 border-b border-primary/10" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
         <button onClick={onClose} className="text-slate-500 flex size-10 items-center justify-center hover:bg-primary/10 rounded-full transition-colors">
           <ArrowLeft size={20} />
         </button>

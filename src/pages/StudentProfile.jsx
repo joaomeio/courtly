@@ -109,7 +109,7 @@ export default function StudentProfile() {
       ═══════════════════════════════════════════════════ */}
       <div className="lg:hidden flex flex-col min-h-screen bg-slate-50 text-slate-900 pb-24">
         {/* Local Header */}
-        <div className="flex items-center bg-white p-4 justify-between sticky top-0 z-20 border-b border-slate-200 shadow-sm">
+        <div className="flex items-center bg-white p-4 justify-between sticky top-0 z-20 border-b border-slate-200 shadow-sm" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
           <Link to="/students" className="text-slate-500 hover:text-primary flex size-10 shrink-0 items-center justify-center cursor-pointer transition-colors bg-slate-50 rounded-full">
             <ArrowLeft size={20} />
           </Link>

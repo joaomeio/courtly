@@ -9,7 +9,9 @@ import UpgradeModal from '../components/UpgradeModal';
 export default function Settings() {
   const { session } = useOutletContext();
   const { themeMode, setThemeMode } = useTheme();
-  const { plan, isPro } = useSubscription();
+  const { plan, isPro, isNative, presentPaywall, presentCustomerCenter, restorePurchases, signOut } = useSubscription();
+  const [restoring, setRestoring] = useState(false);
+  const [restoreMsg, setRestoreMsg] = useState('');
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [upgradeOpen, setUpgradeOpen] = useState(false);
@@ -42,7 +44,34 @@ export default function Settings() {
   }, [session]);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    await signOut();
+  };
+
+  const handleSubscriptionPress = async () => {
+    if (isNative) {
+      if (isPro) {
+        await presentCustomerCenter();
+      } else {
+        await presentPaywall();
+      }
+    } else {
+      navigate('/pricing');
+    }
+  };
+
+  const handleRestorePurchases = async () => {
+    setRestoring(true);
+    setRestoreMsg('');
+    try {
+      const info = await restorePurchases();
+      const active = Object.keys(info?.entitlements?.active ?? {});
+      setRestoreMsg(active.length > 0 ? 'Purchases restored!' : 'No purchases found.');
+    } catch (err) {
+      setRestoreMsg(err.message || 'Restore failed.');
+    } finally {
+      setRestoring(false);
+      setTimeout(() => setRestoreMsg(''), 4000);
+    }
   };
 
   const saveProfile = async () => {
@@ -70,7 +99,7 @@ export default function Settings() {
       {/* ═══════════════════════════════════════════════════
           MOBILE LAYOUT
       ═══════════════════════════════════════════════════ */}
-      <div className="lg:hidden flex flex-col min-h-screen bg-slate-50 relative pb-24 text-slate-700">
+      <div className="lg:hidden flex flex-col min-h-screen bg-slate-50 relative pb-24 text-slate-700" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="max-w-2xl w-full mx-auto px-4 py-6 space-y-6">
           
           {/* Header */}
@@ -211,18 +240,41 @@ export default function Settings() {
               </div>
               <ChevronRight size={20} className="text-slate-300" />
             </button>
-             <button onClick={() => navigate('/pricing')} className="w-full flex items-center justify-between p-4 border-t border-slate-50 hover:bg-slate-50 transition-colors group text-left">
+             <button onClick={handleSubscriptionPress} className="w-full flex items-center justify-between p-4 border-t border-slate-50 hover:bg-slate-50 transition-colors group text-left">
               <div className="flex items-center space-x-4">
                 <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center text-slate-500 group-hover:bg-primary/10 group-hover:text-primary transition-colors border border-slate-100 group-hover:border-primary/20">
                   <CreditCard size={18} />
                 </div>
                 <div>
-                  <span className="block font-medium text-slate-700 text-sm">Subscription</span>
-                  <span className={`text-xs font-semibold ${isPro ? 'text-primary' : 'text-slate-500'}`}>{isPro ? 'Pro Plan Active' : 'Free Plan'}</span>
+                  <span className="block font-medium text-slate-700 text-sm">
+                    {isNative && isPro ? 'Manage Subscription' : 'Subscription'}
+                  </span>
+                  <span className={`text-xs font-semibold ${isPro ? 'text-primary' : 'text-slate-500'}`}>
+                    {isPro ? 'Pro Plan Active' : 'Free Plan — Tap to upgrade'}
+                  </span>
                 </div>
               </div>
               <ChevronRight size={20} className="text-slate-300" />
             </button>
+
+            {/* Restore Purchases — native only, required by App Store guidelines */}
+            {isNative && (
+              <button onClick={handleRestorePurchases} disabled={restoring} className="w-full flex items-center justify-between p-4 border-t border-slate-50 hover:bg-slate-50 transition-colors group text-left disabled:opacity-60">
+                <div className="flex items-center space-x-4">
+                  <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center text-slate-500 group-hover:bg-primary/10 group-hover:text-primary transition-colors border border-slate-100 group-hover:border-primary/20">
+                    {restoring ? <Loader size={18} className="animate-spin" /> : <Star size={18} />}
+                  </div>
+                  <div>
+                    <span className="block font-medium text-slate-700 text-sm">Restore Purchases</span>
+                    <span className={`text-xs font-semibold ${restoreMsg.includes('restored') ? 'text-primary' : 'text-slate-500'}`}>
+                      {restoreMsg || 'Recover a previous subscription'}
+                    </span>
+                  </div>
+                </div>
+                <ChevronRight size={20} className="text-slate-300" />
+              </button>
+            )}
+
             <button className="w-full flex items-center justify-between p-4 border-t border-slate-50 hover:bg-slate-50 transition-colors group text-left">
               <div className="flex items-center space-x-4">
                 <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center text-slate-500 group-hover:bg-primary/10 group-hover:text-primary transition-colors border border-slate-100 group-hover:border-primary/20">

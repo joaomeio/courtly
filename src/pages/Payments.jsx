@@ -158,7 +158,7 @@ const Payments = () => {
       ═══════════════════════════════════════════════════ */}
       <div className="lg:hidden flex flex-col min-h-screen bg-slate-50 pb-24 relative">
         {/* Header */}
-        <div className="flex items-center bg-white p-4 justify-between sticky top-0 z-20 shadow-sm border-b border-slate-200">
+        <div className="flex items-center bg-white p-4 justify-between sticky top-0 z-20 shadow-sm border-b border-slate-200" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
           <Link to="/" className="text-slate-500 hover:text-primary flex size-10 items-center justify-center rounded-full transition-colors bg-slate-50">
             <ArrowLeft size={20} />
           </Link>

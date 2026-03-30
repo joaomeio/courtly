@@ -151,7 +151,7 @@ export default function Drills() {
       ═══════════════════════════════════════ */}
       <div className="lg:hidden flex flex-col min-h-screen bg-slate-50 relative pb-24">
 
-        <div className="p-4 space-y-3 bg-white border-b border-slate-100">
+        <div className="p-4 space-y-3 bg-white border-b border-slate-100" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
           <div className="relative">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search drills…"

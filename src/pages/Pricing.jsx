@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSubscription } from '../contexts/SubscriptionContext';
 import { supabase } from '../supabaseClient';
 import { Check, Zap, Star, LayoutGrid, Users, ClipboardList, TrendingUp, CalendarDays, Loader, ArrowLeft, X } from 'lucide-react';
@@ -8,10 +8,34 @@ const MONTHLY_PRICE_ID = 'price_1TF0pKCnYp1Fi3zgd9iK8AwL';
 const ANNUAL_PRICE_ID = 'price_1TF2j3CnYp1Fi3zgrT7zovaI';
 
 export default function Pricing() {
-  const { isPro, plan } = useSubscription();
+  const { isPro, plan, isNative, presentPaywall, presentCustomerCenter } = useSubscription();
   const [loading, setLoading] = useState(false);
   const [billingCycle, setBillingCycle] = useState('annual'); // 'annual' or 'monthly'
   const navigate = useNavigate();
+
+  // On native: present the appropriate RevenueCat UI immediately and go back.
+  // The web pricing page is only rendered for browser/web builds.
+  useEffect(() => {
+    if (!isNative) return;
+    (async () => {
+      if (isPro) {
+        await presentCustomerCenter();
+      } else {
+        await presentPaywall();
+      }
+      navigate(-1);
+    })();
+  }, [isNative]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // While the native paywall is opening, show a minimal loader so there's
+  // no flash of the web pricing UI underneath.
+  if (isNative) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
 
   const features = [
     { title: "Up to 5 Students", basic: true, pro: true },
