@@ -13,6 +13,7 @@ const COLORS = ['#66b319', '#f59e0b', '#10b981', '#6366f1']; // Primary (Green),
 export default function Analytics() {
   const [period, setPeriod] = useState('Weekly');
   const [lessons, setLessons] = useState([]);
+  const [payments, setPayments] = useState([]);
   const [studentsCount, setStudentsCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -20,12 +21,14 @@ export default function Analytics() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [lessonsRes, studentsRes] = await Promise.all([
+        const [lessonsRes, studentsRes, paymentsRes] = await Promise.all([
           supabase.from('lessons').select('*').neq('status', 'Cancelled'),
-          supabase.from('students').select('id', { count: 'exact' }).eq('status', 'Active')
+          supabase.from('students').select('id', { count: 'exact' }).eq('status', 'Active'),
+          supabase.from('payments').select('*')
         ]);
         setLessons(lessonsRes.data || []);
         setStudentsCount(studentsRes.count || 0);
+        setPayments(paymentsRes.data || []);
       } catch (err) {
         console.error('Analytics fetch error:', err);
       } finally {
@@ -35,32 +38,45 @@ export default function Analytics() {
     fetchData();
   }, []);
 
-  // Filter lessons by period
-  const periodFilter = (lesson) => {
-    const date = parseISO(lesson.start_time);
+  // Filter by period
+  const periodFilter = (dateStr) => {
+    if (!dateStr) return false;
+    const date = parseISO(dateStr);
     if (period === 'Weekly') return isThisWeek(date, { weekStartsOn: 1 });
     if (period === 'Monthly') return isThisMonth(date);
     return isThisYear(date);
   };
 
-  const periodLessons = lessons.filter(periodFilter);
+  const periodLessons = lessons.filter(l => periodFilter(l.start_time));
+  const periodPayments = payments.filter(p => periodFilter(p.payment_date));
+  
   const completedLessons = periodLessons.filter(l => l.status === 'Completed');
   const hoursCoached = (periodLessons.reduce((s, l) => s + (l.duration_minutes || 60), 0) / 60).toFixed(1);
 
-  // Revenue estimate (flat rate $80/lesson)
-  const revenue = completedLessons.length * 80;
+  // Actual revenue from payments
+  const revenue = periodPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
 
   // 1. Session Trends (Line Chart Data)
   const dayCount = Array(7).fill(0);
   periodLessons.forEach(l => {
+    if (!l.start_time) return;
     const d = getDay(parseISO(l.start_time)); // 0=Sun
     const mon0 = (d + 6) % 7; // convert to Mon=0
     dayCount[mon0]++;
   });
+
+  const dayRevenue = Array(7).fill(0);
+  periodPayments.forEach(p => {
+    if (!p.payment_date) return;
+    const d = getDay(parseISO(p.payment_date)); // 0=Sun
+    const mon0 = (d + 6) % 7; // convert to Mon=0
+    dayRevenue[mon0] += Number(p.amount || 0);
+  });
   
   const trendData = DAYS.map((day, index) => ({
     name: day,
-    sessions: dayCount[index]
+    sessions: dayCount[index],
+    revenue: dayRevenue[index]
   }));
 
   // 2. Make-up by Type (Donut Chart Data)
@@ -71,9 +87,9 @@ export default function Analytics() {
   });
   const typeData = Object.entries(typeCounts).map(([name, value]) => ({ name, value }));
 
-  // 3. Sparkline Data Generation (Simple mock curve based on trend)
+  // 3. Sparkline Data Generation
   const sparklineSessions = trendData.map(d => ({ value: d.sessions }));
-  const sparklineRevenue = trendData.map(d => ({ value: d.sessions * 80 }));
+  const sparklineRevenue = trendData.map(d => ({ value: d.revenue }));
 
   // Popular time slots
   const timeSlots = {};
