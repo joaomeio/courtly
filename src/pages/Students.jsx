@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { format, parseISO } from 'date-fns';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useOutletContext } from 'react-router-dom';
 import AddStudentModal from '../components/AddStudentModal';
 import { Search, UserPlus, Calendar, History, ArrowRight, Plus, ExternalLink, TrendingUp, Clock, Star, ChevronRight, Lock } from 'lucide-react';
 import { useSubscription } from '../contexts/SubscriptionContext';
@@ -22,6 +22,7 @@ export default function Students() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const navigate = useNavigate();
+  const { session } = useOutletContext();
   const { isPro } = useSubscription();
   const FREE_LIMIT = 5;
   const atLimit = !isPro && students.length >= FREE_LIMIT;
@@ -170,6 +171,7 @@ export default function Students() {
 
         {/* Floating Action Button */}
         <button
+          id="tutorial-mobile-add-student-fab"
           onClick={handleAddStudent}
           className={`fixed bottom-[100px] right-6 size-14 text-white rounded-full shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all z-30 ring-[6px] ring-slate-50 ${atLimit ? 'bg-slate-400 shadow-slate-400/30' : 'bg-primary shadow-primary/30'}`}
         >
@@ -196,7 +198,8 @@ export default function Students() {
               <h1 className="text-[28px] font-bold m-0 tracking-tight text-slate-900 leading-none">Students</h1>
             </div>
             <button
-            onClick={() => setIsAddModalOpen(true)}
+              id="tutorial-add-student-btn"
+              onClick={() => setIsAddModalOpen(true)}
               className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg text-sm font-bold transition-colors cursor-pointer shadow-sm"
             >
               <Plus size={16} strokeWidth={2.5} />
@@ -353,6 +356,7 @@ export default function Students() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onStudentAdded={handleStudentAdded}
+        session={session}
       />
       <UpgradeModal isOpen={upgradeOpen} onClose={() => setUpgradeOpen(false)} feature="Unlimited Students" />
     </>

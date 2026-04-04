@@ -436,6 +436,7 @@ export default function Dashboard() {
 
         <section className="flex flex-col gap-4">
           <button
+            id="tutorial-mobile-new-lesson-btn"
             onClick={() => setIsBookingModalOpen(true)}
             className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-primary/30 bg-primary/5 text-primary text-sm font-semibold hover:bg-primary/10 active:scale-[0.98] transition-all"
           >
@@ -495,6 +496,7 @@ export default function Dashboard() {
             </div>
             
             <button 
+              id="tutorial-desktop-new-session-btn"
               onClick={() => setIsBookingModalOpen(true)}
               className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg text-sm font-bold transition-colors cursor-pointer shadow-sm"
             >

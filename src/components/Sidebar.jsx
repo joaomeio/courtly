@@ -257,6 +257,7 @@ export default function Sidebar({ session, onAddClick }) {
               return (
                 <Link
                   key={item.id}
+                  id={item.id === 'students' ? 'tutorial-students-nav' : undefined}
                   to={item.path}
                   onMouseEnter={() => setHovered(item.id)}
                   onMouseLeave={() => setHovered(null)}
@@ -315,6 +316,7 @@ export default function Sidebar({ session, onAddClick }) {
       {/* Bottom */}
       <div style={{ borderTop: `1px solid ${COLORS.border}`, paddingTop: 12 }}>
         <button
+          id="tutorial-new-session-btn"
           onClick={onAddClick}
           style={{
             display: "flex",

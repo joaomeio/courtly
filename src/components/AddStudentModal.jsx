@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
-import { useOutletContext } from 'react-router-dom';
 import { X } from 'lucide-react';
 
-export default function AddStudentModal({ isOpen, onClose, onStudentAdded }) {
-  const { session } = useOutletContext();
+export default function AddStudentModal({ isOpen, onClose, onStudentAdded, session }) {
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',

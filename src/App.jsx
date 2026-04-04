@@ -20,6 +20,7 @@ import Programs from './pages/Programs';
 import ProgramDetail from './pages/ProgramDetail';
 import Pricing from './pages/Pricing';
 import Offer from './pages/Offer';
+import LegalPage from './pages/LegalPage';
 
 function App() {
   const [session, setSession] = useState(null);
@@ -57,8 +58,10 @@ function App() {
     return (
       <Router>
         <Routes>
-          <Route path="/" element={<Auth />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/login" element={<Auth mode="login" />} />
+          <Route path="/register" element={<Auth mode="register" />} />
+          <Route path="/privacy" element={<LegalPage />} />
+          <Route path="*" element={<Navigate to="/register" replace />} />
         </Routes>
       </Router>
     );
@@ -84,6 +87,7 @@ function App() {
             <Route path="pricing" element={<Pricing />} />
             <Route path="offer" element={<Offer />} />
           </Route>
+          <Route path="/privacy" element={<LegalPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </SubscriptionProvider>

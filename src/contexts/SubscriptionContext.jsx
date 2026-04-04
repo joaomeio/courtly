@@ -19,12 +19,14 @@ const SubscriptionContext = createContext({
   plan: 'free',
   isPro: false,
   onboardingCompleted: true,
+  tutorialCompleted: true,
   isLoading: true,
   isNative: false,
   customerInfo: null,
   offerings: null,
   refresh: async () => {},
   signOut: async () => {},
+  markTutorialComplete: async () => {},
   presentPaywall: async () => null,
   presentPaywallIfNeeded: async () => null,
   presentCustomerCenter: async () => {},
@@ -35,6 +37,7 @@ const SubscriptionContext = createContext({
 export function SubscriptionProvider({ children, session }) {
   const [plan, setPlan] = useState('free');
   const [onboardingCompleted, setOnboardingCompleted] = useState(true);
+  const [tutorialCompleted, setTutorialCompleted] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [customerInfo, setCustomerInfo] = useState(null);
   const [offerings, setOfferings] = useState(null);
@@ -49,7 +52,7 @@ export function SubscriptionProvider({ children, session }) {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('plan, onboarding_completed')
+        .select('plan, onboarding_completed, tutorial_completed')
         .eq('id', userId)
         .single();
 
@@ -59,11 +62,14 @@ export function SubscriptionProvider({ children, session }) {
           id: userId,
           plan: 'free',
           onboarding_completed: false,
+          tutorial_completed: false,
         });
         setOnboardingCompleted(false);
+        setTutorialCompleted(false);
         if (!isNative) setPlan('free');
       } else if (!error) {
         setOnboardingCompleted(data?.onboarding_completed ?? false);
+        setTutorialCompleted(data?.tutorial_completed ?? false);
         if (!isNative) setPlan(data?.plan || 'free');
       }
     } catch (err) {
@@ -119,6 +125,20 @@ export function SubscriptionProvider({ children, session }) {
       console.error('[Sub] Refresh error:', err);
     }
   }, [userId, fetchSupabaseProfile]);
+
+  // ── Mark tutorial complete ────────────────────────────────────────────────────
+  const markTutorialComplete = useCallback(async () => {
+    setTutorialCompleted(true);
+    if (!userId) return;
+    try {
+      await supabase
+        .from('profiles')
+        .update({ tutorial_completed: true })
+        .eq('id', userId);
+    } catch (err) {
+      console.error('[Tutorial] Failed to persist completion:', err);
+    }
+  }, [userId]);
 
   // ── Sign out ─────────────────────────────────────────────────────────────────
   // Logs out from both Supabase and RevenueCat.
@@ -197,12 +217,14 @@ export function SubscriptionProvider({ children, session }) {
       plan,
       isPro: plan === 'pro',
       onboardingCompleted,
+      tutorialCompleted,
       isLoading,
       isNative,
       customerInfo,
       offerings,
       refresh,
       signOut,
+      markTutorialComplete,
       presentPaywall,
       presentPaywallIfNeeded,
       presentCustomerCenter,

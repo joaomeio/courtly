@@ -214,7 +214,7 @@ export default function BookingModal({ isOpen, onClose, session }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+    <div id="booking-modal-overlay" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
       <div className="relative w-full max-w-lg bg-white shadow-2xl rounded-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-primary/10 bg-slate-50/30">
@@ -429,23 +429,15 @@ export default function BookingModal({ isOpen, onClose, session }) {
 
             </div>
 
-            {/* Advanced Options (Recurring) */}
-            <div className="pt-2 border-t border-slate-100 mt-2">
-              <button
-                type="button"
-                onClick={() => setShowAdvanced(!showAdvanced)}
-                className="text-[11px] font-bold uppercase tracking-widest text-slate-400 hover:text-primary flex items-center gap-1.5 transition-colors"
-              >
-                <ChevronDown size={14} className={`transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`} />
-                Advanced (Recurring)
-              </button>
-            </div>
-
-            {showAdvanced && (
-              <div className="flex flex-col gap-4 p-5 bg-primary/5 rounded-2xl border border-primary/10 animate-in fade-in slide-in-from-top-2">
+            {/* Recurring Section */}
+            <div className="pt-4 border-t border-slate-100 mt-2">
+              <div className="flex flex-col gap-4 p-5 bg-primary/5 rounded-2xl border border-primary/10">
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center justify-between">
-                    <label className="text-sm font-bold text-slate-800">Repeat Lesson</label>
+                    <div className="flex items-center gap-2">
+                      <Repeat size={16} className="text-primary" />
+                      <label className="text-sm font-bold text-slate-800">Recurring Lesson</label>
+                    </div>
                     <button
                       type="button"
                       onClick={() => setForm(prev => ({ ...prev, is_recurring: !prev.is_recurring }))}
@@ -484,7 +476,7 @@ export default function BookingModal({ isOpen, onClose, session }) {
                   )}
                 </div>
               </div>
-            )}
+            </div>
             
           </div>
 
@@ -493,7 +485,12 @@ export default function BookingModal({ isOpen, onClose, session }) {
             <button type="button" onClick={onClose} className="px-5 h-11 rounded-xl text-sm text-slate-600 font-bold hover:bg-slate-200 transition-colors">
               Cancel
             </button>
-            <button type="submit" disabled={loading} className="px-8 h-11 rounded-xl bg-slate-900 text-white font-bold text-sm tracking-wide hover:bg-primary transition-colors flex items-center justify-center gap-2 shadow-sm">
+            <button 
+              id="tutorial-confirm-booking-btn"
+              type="submit" 
+              disabled={loading} 
+              className="px-8 h-11 rounded-xl bg-slate-900 text-white font-bold text-sm tracking-wide hover:bg-primary transition-colors flex items-center justify-center gap-2 shadow-sm"
+            >
               {loading
                 ? <Loader2 size={18} className="animate-spin" />
                 : <CheckCircle2 size={16} />}

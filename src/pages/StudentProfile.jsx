@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { format, parseISO } from 'date-fns';
 import { ArrowLeft, Settings, ShieldCheck, Mail, CalendarPlus, BarChart2, TrendingUp, TrendingDown, ArrowRight, ChevronRight, FileEdit, Check, X, Lock } from 'lucide-react';
@@ -67,7 +67,28 @@ export default function StudentProfile() {
     { label: 'Cancel Rate', score: cancelRate + '%', trend: cancelRate > 20 ? 'down' : 'up', val: cancelledLessons + ' total' }
   ];
 
+  const navigate = useNavigate();
+
+  const handleDelete = async () => {
+    if (!window.confirm(`Are you sure you want to delete ${student.full_name}? This will also delete all their lesson history.`)) return;
+    
+    setSaving(true);
+    try {
+      // Supabase should handle cascade delete if configured, or we do it manually.
+      // Usually, we just delete the student.
+      const { error } = await supabase.from('students').delete().eq('id', id);
+      if (error) throw error;
+      navigate('/students');
+    } catch (err) {
+      console.error('Error deleting student:', err);
+      alert('Error deleting student. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleSave = async () => {
+    if (!editData.full_name.trim()) return alert('Name is required');
     setSaving(true);
     try {
       const { error } = await supabase
@@ -176,10 +197,16 @@ export default function StudentProfile() {
                     <button
                       onClick={handleSave}
                       disabled={saving}
-                      className="w-full py-2.5 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center gap-2"
+                      className="w-full py-2.5 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
                     >
-                      <Check size={16} />
                       {saving ? 'Saving...' : 'Save Changes'}
+                    </button>
+                    <button
+                      onClick={handleDelete}
+                      disabled={saving}
+                      className="w-full py-2.5 rounded-xl bg-white border border-rose-200 text-rose-600 font-bold text-sm flex items-center justify-center gap-2 hover:bg-rose-50 transition-colors"
+                    >
+                      Delete Student
                     </button>
                   </div>
                 ) : (
@@ -408,10 +435,16 @@ export default function StudentProfile() {
                     <button
                       onClick={handleSave}
                       disabled={saving}
-                      className="w-full py-2.5 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center gap-2 mt-1"
+                      className="w-full py-2.5 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center gap-2 mt-1 shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all"
                     >
-                      <Check size={15} />
                       {saving ? 'Saving...' : 'Save Changes'}
+                    </button>
+                    <button
+                      onClick={handleDelete}
+                      disabled={saving}
+                      className="w-full py-2 px-4 rounded-xl border border-rose-100 text-rose-600 text-xs font-bold hover:bg-rose-50 transition-colors mt-2"
+                    >
+                      Delete Student
                     </button>
                   </div>
                 ) : (

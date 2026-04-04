@@ -6,21 +6,22 @@ import Sidebar from './Sidebar';
 import BookingModal from './BookingModal';
 import NotificationsDropdown from './NotificationsDropdown';
 import OnboardingModal from './OnboardingModal';
+import TutorialOverlay from './TutorialOverlay';
 import { useSubscription } from '../contexts/SubscriptionContext';
 
 export default function Layout({ session }) {
-  const { onboardingCompleted } = useSubscription();
+  const { onboardingCompleted, tutorialCompleted, markTutorialComplete } = useSubscription();
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const location = useLocation();
   const isDashboard = location.pathname === '/';
+
+  const showTutorial = onboardingCompleted && !tutorialCompleted;
 
   return (
     <div className="min-h-screen bg-slate-50 font-display text-slate-800">
 
       {/* ─────────────────────────────────────────────────────
           DESKTOP LAYOUT  (lg and above)
-          Sidebar on the left, scrollable main on the right.
-          Hidden completely on mobile via 'hidden lg:flex'.
       ───────────────────────────────────────────────────── */}
       <div className="hidden lg:flex h-screen overflow-hidden">
         <Sidebar
@@ -28,14 +29,12 @@ export default function Layout({ session }) {
           onAddClick={() => setIsBookingModalOpen(true)}
         />
 
-        {/* Desktop top bar + page content */}
         <div className="flex flex-col flex-1 overflow-hidden">
-          {/* Top Header Bar */}
           <header className="h-16 flex items-center justify-between px-8 bg-white border-b border-slate-200 flex-shrink-0">
             <h2 className="text-lg font-bold tracking-tight capitalize">
               {location.pathname === '/'
                 ? 'Overview'
-                : location.pathname.startsWith('/students/') 
+                : location.pathname.startsWith('/students/')
                   ? 'Student Profile'
                   : location.pathname.slice(1).replace(/-/g, ' ')}
             </h2>
@@ -48,7 +47,6 @@ export default function Layout({ session }) {
             </div>
           </header>
 
-          {/* Page Content */}
           <main className="flex-1 overflow-y-auto p-8">
             <Outlet context={{ session }} />
           </main>
@@ -57,9 +55,6 @@ export default function Layout({ session }) {
 
       {/* ─────────────────────────────────────────────────────
           MOBILE LAYOUT  (below lg)
-          Unchanged from original: header on dashboard only,
-          bottom nav always visible.
-          Hidden completely on desktop via 'flex lg:hidden'.
       ───────────────────────────────────────────────────── */}
       <div className="flex flex-col lg:hidden min-h-screen">
         {isDashboard && <Header session={session} />}
@@ -71,15 +66,23 @@ export default function Layout({ session }) {
         <BottomNav />
       </div>
 
-      {/* Booking Modal — shared between both layouts */}
+      {/* Booking Modal — shared for desktop sidebar "New Session" button */}
       <BookingModal
         isOpen={isBookingModalOpen}
         onClose={() => setIsBookingModalOpen(false)}
         session={session}
       />
 
-      {/* Onboarding Modal */}
+      {/* Onboarding Quiz Modal */}
       {!onboardingCompleted && <OnboardingModal />}
+
+      {/* Interactive Tutorial Overlay */}
+      {showTutorial && (
+        <TutorialOverlay
+          onComplete={markTutorialComplete}
+          session={session}
+        />
+      )}
     </div>
   );
 }
